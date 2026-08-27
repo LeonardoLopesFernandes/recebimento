@@ -68,6 +68,7 @@ class _LoginWebViewScreenState extends State<LoginWebViewScreen> {
         NavigationDelegate(
           onPageStarted: (url) {
             if (url != null) _verificarTokenNaUrl(url);
+            if (url != null) _verificarTokenViaCookies();
             if (_oauthEmAndamento && url != null && MicrosoftOAuth.isRedirectUrl(url)) {
               _tratarOAuth(url);
             }
@@ -76,6 +77,7 @@ class _LoginWebViewScreenState extends State<LoginWebViewScreen> {
             setState(() => _carregando = false);
             if (!_loginConcluido && !_tokenEncontrado) {
               _verificarTokenViaJavaScript();
+              _verificarTokenViaCookies();
               if (_autoLogin) _preencherLoginAutomatico();
             }
             if (_oauthEmAndamento && url != null) {
@@ -136,6 +138,30 @@ class _LoginWebViewScreenState extends State<LoginWebViewScreen> {
       }
     } catch (e) {
       LogHelper.e("verificarTokenViaJavaScript", e);
+    }
+  }
+
+  /// Espelha o verificarCookies() do Kotlin LoginWebViewActivity: o portal
+  /// minhaloja pode entregar o token em cookie (newToken/token) em vez de
+  /// localStorage, e sem esta checagem o app ficava preso na WebView.
+  Future<void> _verificarTokenViaCookies() async {
+    if (_tokenEncontrado || _loginConcluido) return;
+    try {
+      final cookies = await WebViewCookieManager().getCookies(
+        domain: Uri.parse("https://minhaloja.americanas.io"),
+      );
+      for (final c in cookies) {
+        final name = c.name;
+        if (name == "newToken" || name == "token") {
+          final token = c.value;
+          if (token.isNotEmpty && token.length > 50) {
+            _salvarToken(token);
+            return;
+          }
+        }
+      }
+    } catch (e) {
+      LogHelper.e("verificarTokenViaCookies", e);
     }
   }
 
