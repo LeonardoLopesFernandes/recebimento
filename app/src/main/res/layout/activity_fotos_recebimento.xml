@@ -1,0 +1,195 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:background="@color/m3_surface">
+
+    <!-- Header -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:gravity="center_vertical"
+        android:background="@drawable/bg_header_home"
+        android:padding="16dp"
+        android:elevation="4dp">
+
+        <ImageButton
+            android:id="@+id/btnVoltar"
+            android:layout_width="40dp"
+            android:layout_height="40dp"
+            android:src="@drawable/ic_back_white"
+            android:background="@android:color/transparent"
+            android:scaleType="centerInside"
+            android:padding="8dp"
+            android:clickable="true"
+            android:focusable="true"
+            android:importantForAccessibility="no" />
+
+        <LinearLayout
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:orientation="vertical"
+            android:layout_marginStart="12dp">
+
+            <TextView
+                android:id="@+id/tvViagemFotos"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Viagem 6837376"
+                android:textSize="18sp"
+                android:textStyle="bold"
+                android:textColor="#FFFFFF" />
+
+            <TextView
+                android:id="@+id/tvDataFotos"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="04/08/2026"
+                android:textSize="12sp"
+                android:textColor="#FFFFFF"
+                android:alpha="0.9"
+                android:layout_marginTop="2dp" />
+        </LinearLayout>
+
+        <ImageButton
+            android:id="@+id/btnOrdenarFotos"
+            android:layout_width="40dp"
+            android:layout_height="40dp"
+            android:src="@drawable/ic_sort"
+            android:background="@android:color/transparent"
+            android:scaleType="centerInside"
+            android:padding="8dp"
+            android:clickable="true"
+            android:focusable="true"
+            app:tint="#FFFFFF"
+            android:importantForAccessibility="no" />
+    </LinearLayout>
+
+    <!-- Conteúdo -->
+    <FrameLayout
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1">
+
+        <androidx.recyclerview.widget.RecyclerView
+            android:id="@+id/rvFotos"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:padding="12dp"
+            android:paddingBottom="96dp"
+            android:clipToPadding="false" />
+
+        <!-- Empty state -->
+        <LinearLayout
+            android:id="@+id/layoutEmptyFotos"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:gravity="center"
+            android:orientation="vertical"
+            android:visibility="gone"
+            android:padding="32dp">
+
+            <FrameLayout
+                android:layout_width="100dp"
+                android:layout_height="100dp"
+                android:background="@drawable/bg_empty_circle">
+
+                <ImageView
+                    android:layout_width="44dp"
+                    android:layout_height="44dp"
+                    android:layout_gravity="center"
+                    android:src="@drawable/ic_camera"
+                    app:tint="@color/m3_on_surface_variant"
+                    android:importantForAccessibility="no" />
+            </FrameLayout>
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Nenhuma foto nesta viagem"
+                android:textSize="16sp"
+                android:textStyle="bold"
+                android:textColor="@color/m3_on_surface"
+                android:layout_marginTop="24dp" />
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Use a câmera para fotografar o caminhão,\nmova fotos já capturadas ou adicione\nimagens do armazenamento do aparelho"
+                android:textSize="14sp"
+                android:textColor="@color/m3_on_surface_variant"
+                android:gravity="center"
+                android:layout_marginTop="8dp" />
+
+            <TextView
+                android:id="@+id/btnAdicionarGaleria"
+                android:layout_width="wrap_content"
+                android:layout_height="40dp"
+                android:text="📁 ADICIONAR IMAGENS"
+                android:textSize="12sp"
+                android:textStyle="bold"
+                android:gravity="center"
+                android:background="@drawable/bg_btn_visualizar_outline"
+                android:textColor="@color/m3_primary"
+                android:paddingHorizontal="20dp"
+                android:layout_marginTop="20dp"
+                android:clickable="true"
+                android:focusable="true" />
+        </LinearLayout>
+
+        <!-- FAB câmera -->
+        <com.google.android.material.floatingactionbutton.FloatingActionButton
+            android:id="@+id/fabCamera"
+            android:layout_width="56dp"
+            android:layout_height="56dp"
+            android:layout_gravity="bottom|end"
+            android:src="@drawable/ic_camera"
+            android:clickable="true"
+            android:focusable="true"
+            android:elevation="6dp"
+            android:layout_margin="20dp"
+            app:fabCustomSize="56dp"
+            app:maxImageSize="24dp"
+            app:backgroundTint="@color/m3_primary"
+            app:tint="#FFFFFF" />
+
+        <!-- Botão mover fotos capturadas -->
+        <com.google.android.material.floatingactionbutton.FloatingActionButton
+            android:id="@+id/fabMoverFotos"
+            android:layout_width="56dp"
+            android:layout_height="56dp"
+            android:layout_gravity="bottom|end"
+            android:src="@drawable/ic_folder"
+            android:clickable="true"
+            android:focusable="true"
+            android:elevation="6dp"
+            android:layout_margin="20dp"
+            android:layout_marginEnd="92dp"
+            app:fabCustomSize="56dp"
+            app:maxImageSize="24dp"
+            app:backgroundTint="@color/m3_surface_variant"
+            app:tint="@color/m3_on_surface_variant" />
+
+        <!-- Botão adicionar imagens do armazenamento -->
+        <com.google.android.material.floatingactionbutton.FloatingActionButton
+            android:id="@+id/fabAdicionarFotos"
+            android:layout_width="56dp"
+            android:layout_height="56dp"
+            android:layout_gravity="bottom|end"
+            android:src="@drawable/ic_gallery"
+            android:clickable="true"
+            android:focusable="true"
+            android:elevation="6dp"
+            android:layout_margin="20dp"
+            android:layout_marginEnd="164dp"
+            app:fabCustomSize="56dp"
+            app:maxImageSize="24dp"
+            app:backgroundTint="@color/m3_surface_variant"
+            app:tint="@color/m3_on_surface_variant" />
+    </FrameLayout>
+
+</LinearLayout>

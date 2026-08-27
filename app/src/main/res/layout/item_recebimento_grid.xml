@@ -1,0 +1,219 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="vertical"
+    android:background="@drawable/bg_trip_card_v2"
+    android:padding="8dp"
+    android:layout_marginHorizontal="6dp"
+    android:layout_marginBottom="6dp"
+    android:elevation="2dp">
+
+    <!-- Header: Viagem + IMPRIMIR -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:gravity="center_vertical">
+
+        <LinearLayout
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:orientation="vertical">
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Viagem"
+                android:textSize="8sp"
+                android:textStyle="bold"
+                android:textColor="#9E9E9E" />
+
+            <TextView
+                android:id="@+id/tvIdViagem"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="6837376"
+                android:textSize="14sp"
+                android:textStyle="bold"
+                android:textColor="@color/text_dark"
+                android:layout_marginTop="1dp" />
+
+            <TextView
+                android:id="@+id/tvProtocoloValue"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Protocolo: 0000000"
+                android:textSize="11sp"
+                android:textStyle="bold"
+                android:textColor="@color/red_main"
+                android:layout_marginTop="4dp"
+                android:visibility="gone" />
+        </LinearLayout>
+
+        <ImageView
+            android:id="@+id/btnImprimir"
+            android:layout_width="18dp"
+            android:layout_height="18dp"
+            android:src="@drawable/printer"
+            android:scaleType="fitCenter"
+            android:clickable="true"
+            android:focusable="true"
+            android:padding="2dp"
+            android:importantForAccessibility="no" />
+    </LinearLayout>
+
+    <View
+        android:layout_width="match_parent"
+        android:layout_height="1dp"
+        android:background="#F0F0F0"
+        android:layout_marginTop="6dp"
+        android:layout_marginBottom="6dp" />
+
+    <!-- Detalhes 2x2 -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal">
+
+        <LinearLayout
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:orientation="vertical">
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Data"
+                android:textSize="8sp"
+                android:textStyle="bold"
+                android:textColor="#9E9E9E" />
+
+            <TextView
+                android:id="@+id/tvData"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="04/08/2026"
+                android:textSize="10sp"
+                android:textStyle="bold"
+                android:textColor="@color/text_dark"
+                android:layout_marginTop="1dp" />
+        </LinearLayout>
+
+        <LinearLayout
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:orientation="vertical">
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Origem"
+                android:textSize="8sp"
+                android:textStyle="bold"
+                android:textColor="#9E9E9E" />
+
+            <TextView
+                android:id="@+id/tvOrigem"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="L150"
+                android:textSize="10sp"
+                android:textStyle="bold"
+                android:textColor="@color/text_dark"
+                android:layout_marginTop="1dp" />
+        </LinearLayout>
+    </LinearLayout>
+
+<LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:layout_marginTop="6dp">
+
+        <LinearLayout
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:orientation="vertical">
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Placa"
+                android:textSize="8sp"
+                android:textStyle="bold"
+                android:textColor="#9E9E9E" />
+
+            <TextView
+                android:id="@+id/tvPlaca"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="UH06J47"
+                android:textSize="10sp"
+                android:textStyle="bold"
+                android:textColor="@color/text_dark"
+                android:layout_marginTop="1dp" />
+        </LinearLayout>
+
+        <LinearLayout
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:orientation="vertical">
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Roll"
+                android:textSize="8sp"
+                android:textStyle="bold"
+                android:textColor="#9E9E9E" />
+
+            <TextView
+                android:id="@+id/tvQuantidade"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="20 Rolls"
+                android:textSize="10sp"
+                android:textStyle="bold"
+                android:textColor="@color/red_main"
+                android:layout_marginTop="1dp" />
+        </LinearLayout>
+    </LinearLayout>
+
+    <!-- Ações: VISUALIZAR + RECEBER lado a lado -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:gravity="center_vertical"
+        android:layout_marginTop="8dp">
+
+        <ImageView
+            android:id="@+id/btnVisualizar"
+            android:layout_width="0dp"
+            android:layout_height="30dp"
+            android:layout_weight="1"
+            android:src="@drawable/visualizar"
+            android:scaleType="fitCenter"
+            android:clickable="true"
+            android:focusable="true"
+            android:layout_marginEnd="4dp" />
+
+        <ImageView
+            android:id="@+id/btnReceber"
+            android:layout_width="0dp"
+            android:layout_height="30dp"
+            android:layout_weight="1"
+            android:src="@drawable/receber_viagem"
+            android:scaleType="fitCenter"
+            android:clickable="true"
+            android:focusable="true"
+            android:visibility="gone" />
+    </LinearLayout>
+
+</LinearLayout>

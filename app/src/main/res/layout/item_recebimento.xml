@@ -1,0 +1,265 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="vertical"
+    android:background="@drawable/bg_trip_card_v2"
+    android:padding="20dp"
+    android:layout_marginHorizontal="16dp"
+    android:layout_marginBottom="10dp"
+    android:elevation="2dp">
+
+    <!-- Header: Viagem + IMPRIMIR -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:gravity="center_vertical"
+        android:layout_marginBottom="12dp">
+
+        <LinearLayout
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:orientation="vertical">
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Viagem"
+                android:textSize="13sp"
+                android:textStyle="bold"
+                android:textColor="#9E9E9E" />
+
+            <TextView
+                android:id="@+id/tvIdViagem"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="6837376"
+                android:textSize="22sp"
+                android:textStyle="bold"
+                android:textColor="@color/text_dark"
+                android:layout_marginTop="2dp" />
+
+            <TextView
+                android:id="@+id/tvProtocoloValue"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Protocolo: 0000000"
+                android:textSize="14sp"
+                android:textStyle="bold"
+                android:textColor="@color/red_main"
+                android:layout_marginTop="8dp"
+                android:visibility="gone" />
+        </LinearLayout>
+
+        <LinearLayout
+            android:id="@+id/btnImprimir"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:gravity="center_vertical"
+            android:clickable="true"
+            android:focusable="true"
+            android:paddingHorizontal="12dp"
+            android:paddingVertical="8dp">
+
+            <ImageView
+                android:layout_width="20dp"
+                android:layout_height="20dp"
+                android:src="@drawable/printer"
+                android:scaleType="fitCenter"
+                android:importantForAccessibility="no" />
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="IMPRIMIR"
+                android:textSize="14sp"
+                android:textStyle="bold"
+                android:textColor="@color/red_main"
+                android:layout_marginStart="6dp" />
+        </LinearLayout>
+
+    </LinearLayout>
+
+    <View
+        android:layout_width="match_parent"
+        android:layout_height="1dp"
+        android:background="#F0F0F0"
+        android:layout_marginBottom="16dp" />
+
+    <!-- Progresso da viagem (API BRLog) - badge com % -->
+    <LinearLayout
+        android:id="@+id/layoutProgressoViagem"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:gravity="center_vertical"
+        android:layout_marginBottom="16dp"
+        android:visibility="gone">
+
+        <TextView
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="Progresso da viagem"
+            android:textSize="12sp"
+            android:textColor="#9E9E9E" />
+
+        <TextView
+            android:id="@+id/tvProgressoViagem"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:background="@drawable/bg_progresso_badge"
+            android:paddingHorizontal="10dp"
+            android:paddingVertical="4dp"
+            android:text="50%"
+            android:textSize="14sp"
+            android:textStyle="bold"
+            android:textColor="#FFFFFF" />
+    </LinearLayout>
+
+    <!-- Detalhes: 4 colunas -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:layout_marginBottom="16dp"
+        android:weightSum="4">
+
+        <LinearLayout
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:orientation="vertical">
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Data"
+                android:textSize="11sp"
+                android:textStyle="bold"
+                android:textColor="#9E9E9E" />
+
+            <TextView
+                android:id="@+id/tvData"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="04/08/2026"
+                android:textSize="14sp"
+                android:textStyle="bold"
+                android:textColor="@color/text_dark"
+                android:layout_marginTop="4dp" />
+        </LinearLayout>
+
+        <LinearLayout
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:orientation="vertical">
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Origem"
+                android:textSize="11sp"
+                android:textStyle="bold"
+                android:textColor="#9E9E9E" />
+
+            <TextView
+                android:id="@+id/tvOrigem"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="L150"
+                android:textSize="14sp"
+                android:textStyle="bold"
+                android:textColor="@color/text_dark"
+                android:layout_marginTop="4dp" />
+        </LinearLayout>
+
+        <LinearLayout
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:orientation="vertical">
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Placa"
+                android:textSize="11sp"
+                android:textStyle="bold"
+                android:textColor="#9E9E9E" />
+
+            <TextView
+                android:id="@+id/tvPlaca"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="UH06J47"
+                android:textSize="14sp"
+                android:textStyle="bold"
+                android:textColor="@color/text_dark"
+                android:layout_marginTop="4dp" />
+        </LinearLayout>
+
+        <LinearLayout
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:orientation="vertical">
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Roll"
+                android:textSize="11sp"
+                android:textStyle="bold"
+                android:textColor="#9E9E9E" />
+
+            <TextView
+                android:id="@+id/tvQuantidade"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="20 Rolls"
+                android:textSize="14sp"
+                android:textStyle="bold"
+                android:textColor="@color/red_main"
+                android:layout_marginTop="4dp" />
+        </LinearLayout>
+
+    </LinearLayout>
+
+    <!-- Ações: VISUALIZAR + RECEBER lado a lado -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:gravity="center_vertical">
+
+        <ImageView
+            android:id="@+id/btnVisualizar"
+            android:layout_width="0dp"
+            android:layout_height="48dp"
+            android:layout_weight="1"
+            android:src="@drawable/visualizar"
+            android:scaleType="fitCenter"
+            android:contentDescription="Visualizar"
+            android:clickable="true"
+            android:focusable="true"
+            android:layout_marginEnd="8dp" />
+
+        <ImageView
+            android:id="@+id/btnReceber"
+            android:layout_width="0dp"
+            android:layout_height="48dp"
+            android:layout_weight="1"
+            android:src="@drawable/receber_viagem"
+            android:scaleType="fitCenter"
+            android:contentDescription="@string/acao_receber"
+            android:clickable="true"
+            android:focusable="true"
+            android:visibility="gone" />
+    </LinearLayout>
+
+</LinearLayout>

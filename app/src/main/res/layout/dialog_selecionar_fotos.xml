@@ -1,0 +1,71 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="vertical"
+    android:background="@drawable/bg_bottom_sheet"
+    android:padding="20dp">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:gravity="center_vertical">
+
+        <LinearLayout
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:orientation="vertical">
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Fotos Capturadas"
+                android:textSize="18sp"
+                android:textStyle="bold"
+                android:textColor="@color/m3_on_surface" />
+
+            <TextView
+                android:id="@+id/tvContador"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="0 selecionada(s)"
+                android:textSize="13sp"
+                android:textColor="@color/m3_on_surface_variant"
+                android:layout_marginTop="2dp" />
+        </LinearLayout>
+
+        <Button
+            android:id="@+id/btnMoverSelecionadas"
+            android:layout_width="wrap_content"
+            android:layout_height="42dp"
+            android:text="Mover"
+            android:textSize="13sp"
+            android:textStyle="bold"
+            android:background="@drawable/bg_btn_receber_solid"
+            android:textColor="#FFFFFF"
+            android:paddingHorizontal="18dp" />
+    </LinearLayout>
+
+    <androidx.recyclerview.widget.RecyclerView
+        android:id="@+id/rvCapturadas"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:maxHeight="380dp"
+        android:layout_marginTop="16dp" />
+
+    <TextView
+        android:id="@+id/tvSemFotos"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Nenhuma foto capturada ainda. Use o botão da câmera na tela inicial."
+        android:textSize="14sp"
+        android:textColor="@color/m3_on_surface_variant"
+        android:gravity="center"
+        android:layout_marginTop="24dp"
+        android:layout_marginBottom="12dp"
+        android:visibility="gone" />
+
+</LinearLayout>

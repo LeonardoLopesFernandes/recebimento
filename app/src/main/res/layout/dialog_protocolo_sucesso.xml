@@ -1,0 +1,53 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="wrap_content"
+    android:layout_height="wrap_content"
+    android:orientation="vertical"
+    android:background="@drawable/bg_dialog_border"
+    android:padding="24dp"
+    android:gravity="center">
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="✅"
+        android:textSize="48sp"
+        android:gravity="center" />
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Protocolo gerado com sucesso"
+        android:textSize="16sp"
+        android:textStyle="bold"
+        android:textColor="#333333"
+        android:layout_marginTop="12dp"
+        android:gravity="center" />
+
+    <TextView
+        android:id="@+id/tvProtocoloDialog"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="PROTOCOLO123"
+        android:textSize="24sp"
+        android:textStyle="bold"
+        android:textColor="#E5093A"
+        android:layout_marginTop="8dp"
+        android:gravity="center"
+        android:background="@drawable/bg_badge_white"
+        android:paddingHorizontal="20dp"
+        android:paddingVertical="8dp" />
+
+    <Button
+        android:id="@+id/btnOkEntendi"
+        android:layout_width="match_parent"
+        android:layout_height="48dp"
+        android:text="OK, ENTENDI"
+        android:textSize="14sp"
+        android:textStyle="bold"
+        android:textColor="#FFFFFF"
+        android:background="@drawable/bg_botao_confirmar"
+        android:layout_marginTop="16dp" />
+
+</LinearLayout>

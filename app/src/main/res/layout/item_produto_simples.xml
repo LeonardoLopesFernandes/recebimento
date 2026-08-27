@@ -1,0 +1,56 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="vertical"
+    android:paddingVertical="6dp"
+    android:paddingHorizontal="12dp"
+    android:background="#F8F9FA"
+    android:layout_marginBottom="2dp">
+
+    <!-- Descrição do produto -->
+    <TextView
+        android:id="@+id/tvDescricao"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="PACK DEO AERO REXONA BAMBOO"
+        android:textSize="14sp"
+        android:textColor="#1A1A1A"
+        android:textStyle="bold" />
+
+    <!-- QTD, DEP e SAP -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:layout_marginTop="2dp">
+
+        <TextView
+            android:id="@+id/tvQuantidade"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Qtd: 48"
+            android:textSize="12sp"
+            android:textColor="#666666" />
+
+        <TextView
+            android:id="@+id/tvDepartamento"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="DEP: 028"
+            android:textSize="12sp"
+            android:textColor="#666666"
+            android:layout_marginStart="16dp" />
+
+        <TextView
+            android:id="@+id/tvSap"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="SAP: 4332506"
+            android:textSize="12sp"
+            android:textColor="#666666"
+            android:layout_marginStart="16dp" />
+
+    </LinearLayout>
+
+</LinearLayout>

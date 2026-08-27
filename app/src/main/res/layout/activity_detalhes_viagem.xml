@@ -1,0 +1,144 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:background="#F5F5F5">
+
+    <!-- AppBar -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="56dp"
+        android:orientation="horizontal"
+        android:gravity="center_vertical"
+        android:background="#C62828"
+        android:paddingHorizontal="16dp">
+
+        <View
+            android:layout_width="0dp"
+            android:layout_height="1dp"
+            android:layout_weight="1" />
+
+        <TextView
+            android:id="@+id/tvTitle"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="DETALHES DA VIAGEM"
+            android:textColor="#FFFFFF"
+            android:textSize="22sp"
+            android:textStyle="bold"
+            android:letterSpacing="0.05" />
+
+        <ImageView
+            android:id="@+id/btnGerarExcel"
+            android:layout_width="132dp"
+            android:layout_height="36dp"
+            android:src="@drawable/gerar_excel"
+            android:scaleType="fitCenter"
+            android:tint="#FFFFFF"
+            android:contentDescription="@string/acao_gerar_excel"
+            android:layout_marginStart="12dp"
+            android:clickable="true"
+            android:focusable="true" />
+
+        <View
+            android:layout_width="0dp"
+            android:layout_height="1dp"
+            android:layout_weight="1" />
+    </LinearLayout>
+
+    <!-- Conteúdo -->
+    <androidx.core.widget.NestedScrollView
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1"
+        android:fillViewport="false">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:padding="16dp">
+
+            <!-- Card da Viagem (extraído) -->
+            <include layout="@layout/card_viagem_info" />
+
+            <!-- Rastreio BRLog + Liberação -->
+            <include layout="@layout/card_viagem_brlog" />
+
+            <!-- Ações: busca geral + receber_viagem (pendentes) + itens de risco -->
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:gravity="center_vertical"
+                android:layout_marginTop="12dp">
+
+                <ImageView
+                    android:id="@+id/btnGerarProtocolo"
+                    android:layout_width="match_parent"
+                    android:layout_height="52dp"
+                    android:src="@drawable/receber_viagem"
+                    android:scaleType="fitCenter"
+                    android:contentDescription="@string/acao_gerar_protocolo"
+                    android:clickable="true"
+                    android:focusable="true"
+                    android:visibility="gone" />
+            </LinearLayout>
+
+            <!-- Título da Lista + busca geral -->
+            <LinearLayout
+                android:id="@+id/layoutLabelGuias"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:gravity="center_vertical"
+                android:layout_marginTop="16dp"
+                android:layout_marginBottom="10dp">
+
+                <ImageView
+                    android:layout_width="22dp"
+                    android:layout_height="22dp"
+                    android:src="@drawable/ic_note_alt"
+                    android:importantForAccessibility="no" />
+
+                <TextView
+                    android:id="@+id/tvLabelGuiasRolls"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="GUIAS (20)"
+                    android:textSize="14sp"
+                    android:textStyle="bold"
+                    android:textColor="#DE000000"
+                    android:layout_marginStart="8dp" />
+
+                <androidx.appcompat.widget.AppCompatEditText
+                    android:id="@+id/etBuscarSap"
+                    android:layout_width="0dp"
+                    android:layout_height="40dp"
+                    android:layout_weight="1"
+                    android:hint="Buscar SAP ou item"
+                    android:textSize="12sp"
+                    android:textColor="@color/text_dark"
+                    android:textColorHint="#A0AEC0"
+                    android:background="@drawable/bg_search_card_v2"
+                    android:paddingHorizontal="12dp"
+                    android:singleLine="true"
+                    android:imeOptions="actionSearch"
+                    android:inputType="text"
+                    android:layout_marginStart="10dp" />
+            </LinearLayout>
+
+            <!-- Lista de Guias/Rolls -->
+            <LinearLayout
+                android:id="@+id/llGuiasRolls"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:paddingBottom="8dp"
+                android:visibility="gone" />
+
+        </LinearLayout>
+    </androidx.core.widget.NestedScrollView>
+
+</LinearLayout>

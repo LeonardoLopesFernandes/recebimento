@@ -1,0 +1,197 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="vertical"
+    android:background="@drawable/bg_card_viagem_v2"
+    android:paddingHorizontal="20dp"
+    android:paddingTop="20dp"
+    android:paddingBottom="0dp"
+    android:elevation="3dp">
+
+    <!-- Informações -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:gravity="center_vertical"
+        android:layout_marginTop="12dp">
+
+        <TextView
+            android:layout_width="65dp"
+            android:layout_height="wrap_content"
+            android:text="Data"
+            android:textSize="14sp"
+            android:textStyle="bold"
+            android:textColor="#9E9E9E" />
+
+        <TextView
+            android:id="@+id/tvViagemData"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="04/08/2026 17:09"
+            android:textSize="14sp"
+            android:textStyle="bold"
+            android:textColor="#000000" />
+
+        <TextView
+            android:id="@+id/btnItensRisco"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="ITENS DE RISCO"
+            android:textSize="11sp"
+            android:textStyle="bold"
+            android:textColor="#FFFFFF"
+            android:background="@drawable/bg_botao_risco_preenchido"
+            android:paddingHorizontal="12dp"
+            android:paddingVertical="7dp"
+            android:layout_marginStart="8dp"
+            android:clickable="true"
+            android:focusable="true" />
+    </LinearLayout>
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:gravity="center_vertical"
+        android:layout_marginTop="4dp">
+
+        <TextView
+            android:layout_width="65dp"
+            android:layout_height="wrap_content"
+            android:text="Origem"
+            android:textSize="14sp"
+            android:textStyle="bold"
+            android:textColor="#9E9E9E" />
+
+        <TextView
+            android:id="@+id/tvOrigem"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="SAP (L150)"
+            android:textSize="14sp"
+            android:textStyle="bold"
+            android:textColor="#000000" />
+    </LinearLayout>
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:gravity="center_vertical"
+        android:layout_marginTop="4dp">
+
+        <TextView
+            android:layout_width="65dp"
+            android:layout_height="wrap_content"
+            android:text="Placa"
+            android:textSize="14sp"
+            android:textStyle="bold"
+            android:textColor="#9E9E9E" />
+
+        <TextView
+            android:id="@+id/tvPlaca"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="UHO6J47"
+            android:textSize="14sp"
+            android:textStyle="bold"
+            android:textColor="#000000" />
+    </LinearLayout>
+
+    <!-- Recebimento (acima do status/protocolo) -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:layout_marginTop="12dp">
+
+        <TextView
+            android:id="@+id/tvDataRecebimento"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Recebimento: 05/08/2026 - 18h:10min"
+            android:textSize="13sp"
+            android:textStyle="bold"
+            android:textColor="#000000"
+            android:singleLine="true" />
+    </LinearLayout>
+
+    <!-- Status + Protocolo -->
+    <LinearLayout
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:gravity="center_vertical"
+        android:layout_marginTop="12dp">
+
+        <ImageView
+            android:layout_width="18dp"
+            android:layout_height="18dp"
+            android:src="@drawable/ic_check_circle"
+            android:importantForAccessibility="no" />
+
+        <TextView
+            android:id="@+id/tvStatus"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="RECEBIDO"
+            android:textSize="14sp"
+            android:textStyle="bold"
+            android:textColor="#2E7D32"
+            android:layout_marginStart="6dp"
+            android:layout_marginEnd="16dp" />
+
+        <ImageView
+            android:id="@+id/ivProtocoloIcon"
+            android:layout_width="16dp"
+            android:layout_height="16dp"
+            android:src="@drawable/ic_verified_user"
+            android:importantForAccessibility="no" />
+
+        <TextView
+            android:id="@+id/tvProtocolo"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="PROTOCOLO: CQJAWWXQ"
+            android:textSize="12sp"
+            android:textStyle="bold"
+            android:textColor="#C62828"
+            android:layout_marginStart="6dp" />
+    </LinearLayout>
+
+    <!-- Caixa de Valor (completa o card na parte debaixo) -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="90dp"
+        android:orientation="vertical"
+        android:gravity="center"
+        android:paddingVertical="10dp"
+        android:layout_marginTop="0dp">
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Valor Total"
+            android:textSize="12sp"
+            android:textStyle="bold"
+            android:textColor="#8A8A8A"
+            android:gravity="center_horizontal" />
+
+        <TextView
+            android:id="@+id/tvTotal"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="R$ 108.032,07"
+            android:textSize="30sp"
+            android:textStyle="bold"
+            android:textColor="#000000"
+            android:gravity="center_horizontal"
+            android:layout_marginTop="2dp" />
+    </LinearLayout>
+
+</LinearLayout>
