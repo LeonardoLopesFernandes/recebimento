@@ -30,6 +30,7 @@ class MainProvider extends ChangeNotifier {
   Map<String, double> progressoViagem = {};
   String subtitle = "VIAGENS A RECEBER";
   bool showSearch = false;
+  bool isModoGrid = false;
   bool isRefreshing = false;
 
   final List<Recebimento> _allItems = [];
@@ -69,6 +70,11 @@ class MainProvider extends ChangeNotifier {
     searchQuery = query;
     notifyListeners();
     loadRecebimentos(reset: true);
+  }
+
+  void setModoGrid(bool grid) {
+    isModoGrid = grid;
+    notifyListeners();
   }
 
   void refresh() {

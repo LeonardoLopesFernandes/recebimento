@@ -361,6 +361,7 @@ class _DetalhesViagemScreenState extends State<DetalhesViagemScreen> {
 
     return Scaffold(
       appBar: AppBar(
+        automaticallyImplyLeading: false,
         backgroundColor: const Color(Constants.primaryRed),
         title: const Text('DETALHES DA VIAGEM',
             style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),

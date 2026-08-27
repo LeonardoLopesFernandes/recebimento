@@ -40,45 +40,62 @@ class _HomeBody extends StatelessWidget {
     final provider = Provider.of<MainProvider>(context);
     return Scaffold(
       backgroundColor: const Color(Constants.bgGray),
+      drawer: const _AppDrawer(),
       body: Column(
         children: [
           _Header(),
+          _Badges(),
+          if (provider.showSearch) _BuscaFiltros(),
           Expanded(
             child: RefreshIndicator(
               onRefresh: () async => provider.refresh(),
               child: provider.items.isEmpty && !provider.isLoading
                   ? _EmptyState()
-                  : ListView.builder(
-                      itemCount: provider.items.length + 1,
-                      itemBuilder: (ctx, i) {
-                        if (i == provider.items.length) {
-                          if (provider.isLoading) {
-                            return const Padding(
-                              padding: EdgeInsets.all(16),
-                              child: Center(
-                                  child: CircularProgressIndicator()),
-                            );
-                          }
-                          return const SizedBox.shrink();
-                        }
-                        final r = provider.items[i];
-                        final numero = r.id.length > 7
-                            ? r.id.substring(r.id.length - 7)
-                            : r.id;
-                        return TripCard(
-                          recebimento: r,
-                          progresso: provider.progressoViagem[numero],
-                          onVisualizar: () => Navigator.of(context)
-                              .pushNamed('/detalhes', arguments: r.id),
-                          onImprimir: () => _gerarExcel(context, r),
-                          onReceber: () => _gerarProtocolo(context, r),
-                        );
-                      },
-                    ),
+                  : provider.isModoGrid
+                      ? GridView.builder(
+                          padding: const EdgeInsets.all(12),
+                          gridDelegate:
+                              const SliverGridDelegateWithFixedCrossAxisCount(
+                            crossAxisCount: 2,
+                            crossAxisSpacing: 10,
+                            mainAxisSpacing: 10,
+                            childAspectRatio: 0.95,
+                          ),
+                          itemCount: provider.items.length + 1,
+                          itemBuilder: (ctx, i) =>
+                              _itemBuilder(ctx, provider, i),
+                        )
+                      : ListView.builder(
+                          itemCount: provider.items.length + 1,
+                          itemBuilder: (ctx, i) =>
+                              _itemBuilder(ctx, provider, i),
+                        ),
             ),
           ),
         ],
       ),
+    );
+  }
+
+  Widget _itemBuilder(BuildContext context, MainProvider provider, int i) {
+    if (i == provider.items.length) {
+      if (provider.isLoading) {
+        return const Padding(
+          padding: EdgeInsets.all(16),
+          child: Center(child: CircularProgressIndicator()),
+        );
+      }
+      return const SizedBox.shrink();
+    }
+    final r = provider.items[i];
+    final numero = r.id.length > 7 ? r.id.substring(r.id.length - 7) : r.id;
+    return TripCard(
+      recebimento: r,
+      progresso: provider.progressoViagem[numero],
+      onVisualizar: () =>
+          Navigator.of(context).pushNamed('/detalhes', arguments: r.id),
+      onImprimir: () => _gerarExcel(context, r),
+      onReceber: () => _gerarProtocolo(context, r),
     );
   }
 
@@ -116,76 +133,61 @@ class _HomeBody extends StatelessWidget {
   }
 }
 
+
+
 class _Header extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final provider = Provider.of<MainProvider>(context);
     return Container(
       color: const Color(Constants.primaryRed),
-      padding: const EdgeInsets.only(top: 8, left: 20, right: 20),
-      child: Column(
+      height: 120,
+      padding: const EdgeInsets.fromLTRB(20, 8, 20, 12),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.center,
         children: [
-          SizedBox(
-            height: 120 - 30,
-            child: Row(
+          InkWell(
+            onTap: () => Scaffold.of(context).openDrawer(),
+            child: Container(
+              width: 48,
+              height: 48,
+              decoration: BoxDecoration(
+                color: Colors.white.withOpacity(0.2),
+                shape: BoxShape.circle,
+              ),
+              child: const Icon(Icons.local_shipping,
+                  color: Colors.white, size: 26),
+            ),
+          ),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                InkWell(
-                  onTap: () => _abrirMenu(context),
-                  child: Container(
-                    width: 48,
-                    height: 48,
-                    decoration: BoxDecoration(
-                      color: Colors.white.withOpacity(0.2),
-                      shape: BoxShape.circle,
-                    ),
-                    child: const Icon(Icons.local_shipping,
-                        color: Colors.white, size: 26),
-                  ),
-                ),
-                const SizedBox(width: 12),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      const Text('Recebimento Centralizado',
-                          style: TextStyle(
-                              color: Colors.white,
-                              fontSize: 18,
-                              fontWeight: FontWeight.bold)),
-                      Text(provider.subtitle,
-                          style: const TextStyle(
-                              color: Color(0xB3FFFFFF),
-                              fontSize: 12,
-                              fontWeight: FontWeight.bold)),
-                    ],
-                  ),
-                ),
-                IconButton(
-                  icon: const Icon(Icons.settings,
-                      color: Colors.white, size: 28),
-                  onPressed: () {
-                    provider.clearSession();
-                    Navigator.of(context).pushReplacementNamed('/login');
-                  },
-                ),
+                const Text('Recebimento Centralizado',
+                    style: TextStyle(
+                        color: Colors.white,
+                        fontSize: 18,
+                        fontWeight: FontWeight.bold)),
+                Text(provider.subtitle,
+                    style: const TextStyle(
+                        color: Color(0xB3FFFFFF),
+                        fontSize: 12,
+                        fontWeight: FontWeight.bold,
+                        letterSpacing: 0.5)),
               ],
             ),
           ),
-          const SizedBox(height: 8),
-          _Badges(),
-          const SizedBox(height: 10),
-          if (provider.showSearch) _BuscaFiltros(),
+          IconButton(
+            icon: const Icon(Icons.settings, color: Colors.white, size: 28),
+            onPressed: () {
+              provider.clearSession();
+              Navigator.of(context).pushReplacementNamed('/login');
+            },
+          ),
         ],
       ),
-    );
-  }
-
-  void _abrirMenu(BuildContext context) {
-    showModalBottomSheet(
-      context: context,
-      backgroundColor: Colors.transparent,
-      builder: (ctx) => _MenuBottomSheet(),
     );
   }
 }
@@ -195,7 +197,7 @@ class _Badges extends StatelessWidget {
   Widget build(BuildContext context) {
     final provider = Provider.of<MainProvider>(context);
     return Container(
-      margin: const EdgeInsets.symmetric(horizontal: 16),
+      margin: const EdgeInsets.only(top: -25, left: 16, right: 16),
       padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 12),
       decoration: BoxDecoration(
         color: Colors.white,
@@ -367,6 +369,31 @@ class _BuscaFiltros extends StatelessWidget {
                 ativo: provider.currentSort == 'asc',
                 onTap: () => provider.setSort('asc'),
               ),
+              if (provider.currentStatus == Constants.statusRecebido) ...[
+                Container(
+                  width: 1,
+                  height: 20,
+                  color: const Color(0xFFE0E0E0),
+                  margin: const EdgeInsets.symmetric(horizontal: 10),
+                ),
+                InkWell(
+                  onTap: () => provider.setModoGrid(false),
+                  child: Icon(Icons.view_list,
+                      color: provider.isModoGrid
+                          ? Colors.grey[400]
+                          : const Color(Constants.primaryRed),
+                      size: 26),
+                ),
+                const SizedBox(width: 4),
+                InkWell(
+                  onTap: () => provider.setModoGrid(true),
+                  child: Icon(Icons.grid_view,
+                      color: provider.isModoGrid
+                          ? const Color(Constants.primaryRed)
+                          : Colors.grey[400],
+                      size: 26),
+                ),
+              ],
             ],
           ),
         ),
@@ -423,78 +450,99 @@ class _EmptyState extends StatelessWidget {
   }
 }
 
-class _MenuBottomSheet extends StatelessWidget {
+class _AppDrawer extends StatelessWidget {
+  const _AppDrawer();
+
   @override
   Widget build(BuildContext context) {
     final provider = Provider.of<MainProvider>(context, listen: false);
-    return Container(
-      decoration: const BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
-      ),
-      padding: const EdgeInsets.all(20),
+    final email = provider.sessionManager.getUserEmail() ?? 'usuário@americanas.io';
+    return Drawer(
+      backgroundColor: Colors.white,
       child: Column(
-        mainAxisSize: MainAxisSize.min,
-        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Text('Menu',
-              style: TextStyle(
-                  fontSize: 20,
-                  fontWeight: FontWeight.bold,
-                  color: Color(Constants.textDark))),
-          const SizedBox(height: 4),
-          const Text('Escolha uma opção',
-              style: TextStyle(fontSize: 13, color: Color(Constants.textGray))),
-          const SizedBox(height: 16),
-          _MenuItem(
-            Image.asset('assets/drawables/ic_caminhao_logo.png',
-                width: 24, height: 24),
-            'Sincronizar % das Viagens (BRLog)',
-            () {
-              Navigator.of(context).pop();
-              Navigator.of(context)
-                  .pushNamed('/login_webview', arguments: {'oauthOnly': true});
-            },
+          Container(
+            color: const Color(Constants.primaryRed),
+            padding: const EdgeInsets.fromLTRB(20, 40, 20, 20),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Image.asset('assets/drawables/ic_caminhao_logo.png',
+                    width: 56, height: 56),
+                const SizedBox(height: 12),
+                const Text('Recebimento',
+                    style: TextStyle(
+                        color: Colors.white,
+                        fontSize: 20,
+                        fontWeight: FontWeight.bold)),
+                const SizedBox(height: 4),
+                Text(email,
+                    style: const TextStyle(
+                        color: Color(0xB3FFFFFF), fontSize: 13)),
+              ],
+            ),
           ),
-          _MenuItem(
-            const Icon(Icons.folder, color: Color(Constants.primaryRed), size: 24),
-            'Imagens do Recebimento',
-            () {
-              Navigator.of(context).pop();
-              Navigator.of(context).pushNamed('/imagens');
-            },
-          ),
-          _MenuItem(
-            Image.asset('assets/drawables/pendente.png', width: 24, height: 24),
-            'Viagens a Receber',
-            () {
-              Navigator.of(context).pop();
-              provider.selectTab(Constants.statusPendente);
-            },
-          ),
-          _MenuItem(
-            Image.asset('assets/drawables/recebidas.png', width: 24, height: 24),
-            'Viagens Recebidas',
-            () {
-              Navigator.of(context).pop();
-              provider.selectTab(Constants.statusRecebido);
-            },
-          ),
-          _MenuItem(
-            Image.asset('assets/drawables/anomalia.png', width: 24, height: 24),
-            'Viagens com Anomalia',
-            () {
-              Navigator.of(context).pop();
-              provider.selectTab(Constants.statusAnomalia);
-            },
-          ),
-          _MenuItem(
-            Image.asset('assets/drawables/erro.png', width: 24, height: 24),
-            'Viagens com Erro',
-            () {
-              Navigator.of(context).pop();
-              provider.selectTab(Constants.statusErro);
-            },
+          Expanded(
+            child: ListView(
+              padding: const EdgeInsets.all(8),
+              children: [
+                _MenuItem(
+                  Image.asset('assets/drawables/ic_caminhao_logo.png',
+                      width: 24, height: 24),
+                  'Sincronizar % das Viagens (BRLog)',
+                  () {
+                    Navigator.of(context).pop();
+                    Navigator.of(context).pushNamed('/login_webview',
+                        arguments: {'oauthOnly': true});
+                  },
+                ),
+                _MenuItem(
+                  const Icon(Icons.folder,
+                      color: Color(Constants.primaryRed), size: 24),
+                  'Imagens do Recebimento',
+                  () {
+                    Navigator.of(context).pop();
+                    Navigator.of(context).pushNamed('/imagens');
+                  },
+                ),
+                _MenuItem(
+                  Image.asset('assets/drawables/pendente.png',
+                      width: 24, height: 24),
+                  'Viagens a Receber',
+                  () {
+                    Navigator.of(context).pop();
+                    provider.selectTab(Constants.statusPendente);
+                  },
+                ),
+                _MenuItem(
+                  Image.asset('assets/drawables/recebidas.png',
+                      width: 24, height: 24),
+                  'Viagens Recebidas',
+                  () {
+                    Navigator.of(context).pop();
+                    provider.selectTab(Constants.statusRecebido);
+                  },
+                ),
+                _MenuItem(
+                  Image.asset('assets/drawables/anomalia.png',
+                      width: 24, height: 24),
+                  'Viagens com Anomalia',
+                  () {
+                    Navigator.of(context).pop();
+                    provider.selectTab(Constants.statusAnomalia);
+                  },
+                ),
+                _MenuItem(
+                  Image.asset('assets/drawables/erro.png',
+                      width: 24, height: 24),
+                  'Viagens com Erro',
+                  () {
+                    Navigator.of(context).pop();
+                    provider.selectTab(Constants.statusErro);
+                  },
+                ),
+              ],
+            ),
           ),
         ],
       ),
