@@ -81,7 +81,7 @@ class _FotosRecebimentoScreenState extends State<FotosRecebimentoScreen> {
     return Scaffold(
       backgroundColor: const Color(Constants.bgGray),
       appBar: AppBar(
-        backgroundColor: const Color(0xFFDF1B22),
+        backgroundColor: const Color(Constants.primaryRed),
         leading: IconButton(
           icon: const Icon(Icons.arrow_back, color: Colors.white),
           onPressed: () => Navigator.of(context).pop(),

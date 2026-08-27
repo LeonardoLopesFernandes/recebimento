@@ -184,6 +184,7 @@ class _Header extends StatelessWidget {
   void _abrirMenu(BuildContext context) {
     showModalBottomSheet(
       context: context,
+      backgroundColor: Colors.transparent,
       builder: (ctx) => _MenuBottomSheet(),
     );
   }
@@ -427,35 +428,74 @@ class _MenuBottomSheet extends StatelessWidget {
   Widget build(BuildContext context) {
     final provider = Provider.of<MainProvider>(context, listen: false);
     return Container(
-      padding: const EdgeInsets.all(16),
+      decoration: const BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
+      ),
+      padding: const EdgeInsets.all(20),
       child: Column(
         mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          _MenuItem(Icons.sync, 'Sincronizar BRLog', () {
-            Navigator.of(context).pop();
-            Navigator.of(context)
-                .pushNamed('/login_webview', arguments: {'oauthOnly': true});
-          }),
-          _MenuItem(Icons.image, 'Imagens', () {
-            Navigator.of(context).pop();
-            Navigator.of(context).pushNamed('/imagens');
-          }),
-          _MenuItem(Icons.inbox, 'Receber', () {
-            Navigator.of(context).pop();
-            provider.selectTab(Constants.statusPendente);
-          }),
-          _MenuItem(Icons.check_circle, 'Recebidas', () {
-            Navigator.of(context).pop();
-            provider.selectTab(Constants.statusRecebido);
-          }),
-          _MenuItem(Icons.warning, 'Anomalia', () {
-            Navigator.of(context).pop();
-            provider.selectTab(Constants.statusAnomalia);
-          }),
-          _MenuItem(Icons.error, 'Erro', () {
-            Navigator.of(context).pop();
-            provider.selectTab(Constants.statusErro);
-          }),
+          const Text('Menu',
+              style: TextStyle(
+                  fontSize: 20,
+                  fontWeight: FontWeight.bold,
+                  color: Color(Constants.textDark))),
+          const SizedBox(height: 4),
+          const Text('Escolha uma opção',
+              style: TextStyle(fontSize: 13, color: Color(Constants.textGray))),
+          const SizedBox(height: 16),
+          _MenuItem(
+            Image.asset('assets/drawables/ic_caminhao_logo.png',
+                width: 24, height: 24),
+            'Sincronizar % das Viagens (BRLog)',
+            () {
+              Navigator.of(context).pop();
+              Navigator.of(context)
+                  .pushNamed('/login_webview', arguments: {'oauthOnly': true});
+            },
+          ),
+          _MenuItem(
+            const Icon(Icons.folder, color: Color(Constants.primaryRed), size: 24),
+            'Imagens do Recebimento',
+            () {
+              Navigator.of(context).pop();
+              Navigator.of(context).pushNamed('/imagens');
+            },
+          ),
+          _MenuItem(
+            Image.asset('assets/drawables/pendente.png', width: 24, height: 24),
+            'Viagens a Receber',
+            () {
+              Navigator.of(context).pop();
+              provider.selectTab(Constants.statusPendente);
+            },
+          ),
+          _MenuItem(
+            Image.asset('assets/drawables/recebidas.png', width: 24, height: 24),
+            'Viagens Recebidas',
+            () {
+              Navigator.of(context).pop();
+              provider.selectTab(Constants.statusRecebido);
+            },
+          ),
+          _MenuItem(
+            Image.asset('assets/drawables/anomalia.png', width: 24, height: 24),
+            'Viagens com Anomalia',
+            () {
+              Navigator.of(context).pop();
+              provider.selectTab(Constants.statusAnomalia);
+            },
+          ),
+          _MenuItem(
+            Image.asset('assets/drawables/erro.png', width: 24, height: 24),
+            'Viagens com Erro',
+            () {
+              Navigator.of(context).pop();
+              provider.selectTab(Constants.statusErro);
+            },
+          ),
         ],
       ),
     );
@@ -463,7 +503,7 @@ class _MenuBottomSheet extends StatelessWidget {
 }
 
 class _MenuItem extends StatelessWidget {
-  final IconData icon;
+  final Widget icon;
   final String label;
   final VoidCallback onTap;
 
@@ -471,10 +511,31 @@ class _MenuItem extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return ListTile(
-      leading: Icon(icon, color: const Color(Constants.primaryRed)),
-      title: Text(label),
+    return InkWell(
       onTap: onTap,
+      child: Container(
+        margin: const EdgeInsets.only(bottom: 8),
+        padding: const EdgeInsets.symmetric(vertical: 14, horizontal: 14),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          border: Border.all(color: const Color(Constants.borderColor)),
+          borderRadius: BorderRadius.circular(12),
+        ),
+        child: Row(
+          children: [
+            SizedBox(width: 24, height: 24, child: icon),
+            const SizedBox(width: 14),
+            Expanded(
+              child: Text(label,
+                  style: const TextStyle(
+                      fontSize: 15,
+                      fontWeight: FontWeight.bold,
+                      color: Color(Constants.textDark))),
+            ),
+            const Icon(Icons.chevron_right, color: Color(Constants.textGray)),
+          ],
+        ),
+      ),
     );
   }
 }
