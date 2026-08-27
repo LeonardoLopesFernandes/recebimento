@@ -53,13 +53,13 @@ class _HomeBody extends StatelessWidget {
                   ? _EmptyState()
                   : provider.isModoGrid
                       ? GridView.builder(
-                          padding: const EdgeInsets.all(12),
+                          padding: const EdgeInsets.all(10),
                           gridDelegate:
                               const SliverGridDelegateWithFixedCrossAxisCount(
                             crossAxisCount: 2,
                             crossAxisSpacing: 10,
                             mainAxisSpacing: 10,
-                            childAspectRatio: 0.95,
+                            childAspectRatio: 0.52,
                           ),
                           itemCount: provider.items.length + 1,
                           itemBuilder: (ctx, i) =>
@@ -92,6 +92,7 @@ class _HomeBody extends StatelessWidget {
     return TripCard(
       recebimento: r,
       progresso: provider.progressoViagem[numero],
+      compact: provider.isModoGrid,
       onVisualizar: () =>
           Navigator.of(context).pushNamed('/detalhes', arguments: r.id),
       onImprimir: () => _gerarExcel(context, r),
@@ -456,7 +457,6 @@ class _AppDrawer extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final provider = Provider.of<MainProvider>(context, listen: false);
-    final email = provider.sessionManager.getUserEmail() ?? 'usuário@americanas.io';
     return Drawer(
       backgroundColor: Colors.white,
       child: Column(
@@ -464,23 +464,9 @@ class _AppDrawer extends StatelessWidget {
           Container(
             color: const Color(Constants.primaryRed),
             padding: const EdgeInsets.fromLTRB(20, 40, 20, 20),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Image.asset('assets/drawables/ic_caminhao_logo.png',
-                    width: 56, height: 56),
-                const SizedBox(height: 12),
-                const Text('Recebimento',
-                    style: TextStyle(
-                        color: Colors.white,
-                        fontSize: 20,
-                        fontWeight: FontWeight.bold)),
-                const SizedBox(height: 4),
-                Text(email,
-                    style: const TextStyle(
-                        color: Color(0xB3FFFFFF), fontSize: 13)),
-              ],
-            ),
+            alignment: Alignment.center,
+            child: Image.asset('assets/drawables/ic_caminhao_logo.png',
+                width: 72, height: 72),
           ),
           Expanded(
             child: ListView(

@@ -1,5 +1,6 @@
 import 'dart:io';
 import 'package:excel/excel.dart';
+import 'package:flutter/services.dart';
 import 'package:intl/intl.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:pdf/pdf.dart' as pdf;
@@ -9,18 +10,18 @@ import '../utils/currency_formatter.dart';
 import '../network/api_service.dart';
 
 class ExcelDownloader {
-  /// Baixa o Excel da viagem (streaming) e salva no diretório do app.
+  static const MethodChannel _channel = MethodChannel('com.recebimento/media');
+
+  /// Baixa o Excel da viagem (streaming) e salva na pasta Downloads nativa.
   static Future<String> gerarExcel({
     required ApiService apiService,
     required String storeId,
     required String viagemId,
   }) async {
     final bytes = await apiService.gerarExcelViagem(storeId, viagemId);
-    final dir = await getApplicationDocumentsDirectory();
     final nome = "viagem_${_short(viagemId)}_${_timestamp()}.xlsx";
-    final file = File('${dir.path}/$nome');
-    await file.writeAsBytes(bytes);
-    return file.path;
+    return _salvarEmDownloads(
+        nome, 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet', bytes);
   }
 
   /// Gera um xlsx local a partir da lista de itens.
@@ -49,11 +50,9 @@ class ExcelDownloader {
       ]);
     }
     final bytes = excel.save();
-    final dir = await getApplicationDocumentsDirectory();
     final nome = "${prefixo}_${_short(viagemId)}_${_timestamp()}.xlsx";
-    final file = File('${dir.path}/$nome');
-    await file.writeAsBytes(bytes ?? []);
-    return file.path;
+    return _salvarEmDownloads(
+        nome, 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet', bytes ?? []);
   }
 
   /// Gera um PDF local a partir da lista de itens.
@@ -105,10 +104,34 @@ class ExcelDownloader {
         ],
       ),
     );
-    final dir = await getApplicationDocumentsDirectory();
     final nome = "${prefixo}_${_short(titulo)}_${_timestamp()}.pdf";
-    final file = File('${dir.path}/$nome');
-    await file.writeAsBytes(await doc.save());
+    final bytes = await doc.save();
+    return _salvarEmDownloads(nome, 'application/pdf', bytes);
+  }
+
+  /// Salva na pasta Downloads nativa do Android via MediaStore.
+  /// Fallback: pasta Downloads do app (getDownloadsDirectory) ou documents.
+  static Future<String> _salvarEmDownloads(
+      String nome, String mimeType, List<int> bytes) async {
+    try {
+      final uri = await _channel.invokeMethod<String>('saveToDownloads', {
+        'fileName': nome,
+        'mimeType': mimeType,
+        'bytes': Uint8List.fromList(bytes),
+      });
+      if (uri != null && uri.isNotEmpty) return uri;
+    } on PlatformException catch (_) {
+      // ignora e tenta fallback
+    }
+    final downloads = await getDownloadsDirectory();
+    if (downloads != null) {
+      final file = File('${downloads.path}/$nome');
+      await file.writeAsBytes(bytes);
+      return file.path;
+    }
+    final docs = await getApplicationDocumentsDirectory();
+    final file = File('${docs.path}/$nome');
+    await file.writeAsBytes(bytes);
     return file.path;
   }
 

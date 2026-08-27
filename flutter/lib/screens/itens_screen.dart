@@ -92,10 +92,13 @@ class _ItensScreenState extends State<ItensScreen> {
       backgroundColor: Colors.white,
       body: Column(
         children: [
-          // Header
-          Container(
-            color: const Color(Constants.primaryRed),
-            padding: const EdgeInsets.all(16),
+          // Header / toolbar (abaixo da status bar)
+          SafeArea(
+            top: true,
+            bottom: false,
+            child: Container(
+              color: const Color(Constants.primaryRed),
+              padding: const EdgeInsets.all(16),
             child: Column(
               children: [
                 Row(
@@ -185,6 +188,7 @@ class _ItensScreenState extends State<ItensScreen> {
                 ),
               ],
             ),
+          ),
           ),
           // Busca
           Container(

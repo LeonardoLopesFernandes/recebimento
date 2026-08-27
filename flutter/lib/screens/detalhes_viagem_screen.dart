@@ -612,6 +612,7 @@ class _CardInfo extends StatelessWidget {
           ),
           // Faixa verde valor total
           Container(
+            width: double.infinity,
             margin: const EdgeInsets.only(top: 12),
             padding: const EdgeInsets.symmetric(vertical: 10),
             decoration: const BoxDecoration(
