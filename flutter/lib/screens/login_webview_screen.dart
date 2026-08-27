@@ -74,8 +74,12 @@ class _LoginWebViewScreenState extends State<LoginWebViewScreen> {
             }
           },
           onPageFinished: (url) async {
-            setState(() => _carregando = false);
+            // Antes de capturar o token, esconde o carregamento para o
+            // usuário ver/preencher o login SAML. Depois do token, mantém a
+            // tela de carregamento (logo centralizado) e NUNCA revela a
+            // WebView do OAuth BRLog — espelha o LoginWebViewActivity Kotlin.
             if (!_loginConcluido && !_tokenEncontrado) {
+              setState(() => _carregando = false);
               _verificarTokenViaJavaScript();
               _verificarTokenViaCookies();
               if (_autoLogin) _preencherLoginAutomatico();
@@ -169,6 +173,7 @@ class _LoginWebViewScreenState extends State<LoginWebViewScreen> {
     if (_loginConcluido) return;
     _loginConcluido = true;
     _tokenEncontrado = true;
+    if (mounted) setState(() => _carregando = true);
     _session.saveToken(token);
     _session.saveUserInfo("usuario@americanas.io", "Usuário", "L291");
     _iniciarOAuthBRLog();
@@ -195,10 +200,9 @@ class _LoginWebViewScreenState extends State<LoginWebViewScreen> {
     if (MicrosoftOAuth.isRedirectUrl(url)) return;
     final tipo = await _avaliarPaginaOAuth();
     if (tipo == "login") {
-      if (!_oauthPaginaVisivel) {
-        _oauthPaginaVisivel = true;
-        if (mounted) setState(() => _carregando = false);
-      }
+      // Mantém a tela de carregamento visível (não revela a WebView). Se
+      // houver credenciais salvas, tenta preencher silenciosamente; caso
+      // contrário o timer de 90s encerra e segue para o home.
       _preencherLoginBRLog();
     } else if (tipo == "consent") {
       if (!_oauthConsentimentoClicado) {
@@ -338,36 +342,82 @@ class _LoginWebViewScreenState extends State<LoginWebViewScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: const Color(Constants.primaryRed),
-      appBar: AppBar(
-        backgroundColor: const Color(Constants.primaryRed),
-        title: const Text('Login'),
-        leading: IconButton(
-          icon: const Icon(Icons.close),
-          onPressed: () => Navigator.of(context).pop(),
-        ),
-      ),
+      appBar: _carregando
+          ? null
+          : AppBar(
+              backgroundColor: const Color(Constants.primaryRed),
+              title: const Text('Login'),
+              leading: IconButton(
+                icon: const Icon(Icons.close),
+                onPressed: () => Navigator.of(context).pop(),
+              ),
+            ),
       body: Stack(
         children: [
           if (_pronto)
             WebViewWidget(controller: _controller)
           else
             const SizedBox.shrink(),
-          if (_carregando)
-            Container(
-              color: const Color(Constants.primaryRed),
-              child: const Center(
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    CircularProgressIndicator(color: Colors.white),
-                    SizedBox(height: 16),
-                    Text('Autenticando...',
-                        style: TextStyle(color: Colors.white)),
-                  ],
-                ),
-              ),
-            ),
+          if (_carregando) const _CarregamentoWidget(),
         ],
+      ),
+    );
+  }
+}
+
+/// Tela de carregamento fiel ao LoginWebViewActivity do Kotlin: fundo vermelho,
+/// logo do caminhão centralizado com animação de pulso e texto "Autenticando...".
+/// Exibida após capturar o token, enquanto o fluxo OAuth BRLog roda oculto na
+/// WebView; ao concluir, navega para o home sem nunca mostrar a WebView.
+class _CarregamentoWidget extends StatefulWidget {
+  const _CarregamentoWidget();
+
+  @override
+  State<_CarregamentoWidget> createState() => _CarregamentoWidgetState();
+}
+
+class _CarregamentoWidgetState extends State<_CarregamentoWidget>
+    with SingleTickerProviderStateMixin {
+  late final AnimationController _pulse;
+
+  @override
+  void initState() {
+    super.initState();
+    _pulse = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 900),
+    )..repeat(reverse: true);
+  }
+
+  @override
+  void dispose() {
+    _pulse.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      color: const Color(Constants.primaryRed),
+      child: Center(
+        child: FadeTransition(
+          opacity: _pulse.drive(Tween<double>(begin: 1.0, end: 0.2)),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Image.asset(
+                'assets/drawables/ic_caminhao_logo.png',
+                width: 160,
+                height: 160,
+              ),
+              const SizedBox(height: 24),
+              const Text(
+                'Autenticando...',
+                style: TextStyle(color: Colors.white, fontSize: 16),
+              ),
+            ],
+          ),
+        ),
       ),
     );
   }
