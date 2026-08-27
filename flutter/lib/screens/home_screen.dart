@@ -77,9 +77,9 @@ class _HomeBody extends StatelessWidget {
                   child: provider.items.isEmpty && !provider.isLoading
                       ? _EmptyState()
                       : provider.isModoGrid
-                          ? LayoutBuilder(
+                            ? LayoutBuilder(
                               builder: (ctx, constraints) {
-                                final cardW = (constraints.maxWidth - 10) / 2;
+                                final cardW = (constraints.maxWidth - 30) / 2;
                                 final children = <Widget>[];
                                 for (int i = 0;
                                     i < provider.items.length;
