@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:webview_flutter/webview_flutter.dart';
 import '../models/brasil_risk.dart';
@@ -31,6 +32,8 @@ class _LoginWebViewScreenState extends State<LoginWebViewScreen> {
   bool _oauthIniciado = false;
   bool _oauthSomente = false;
   bool _oauthPaginaVisivel = false;
+  bool _oauthConsentimentoClicado = false;
+  Timer? _oauthTimer;
   bool _autoLogin = false;
   bool _carregando = true;
   bool _pronto = false;
@@ -74,6 +77,9 @@ class _LoginWebViewScreenState extends State<LoginWebViewScreen> {
             if (!_loginConcluido && !_tokenEncontrado) {
               _verificarTokenViaJavaScript();
               if (_autoLogin) _preencherLoginAutomatico();
+            }
+            if (_oauthEmAndamento && url != null) {
+              _tratarPaginaOAuth(url);
             }
           },
           onNavigationRequest: (request) {
@@ -147,7 +153,61 @@ class _LoginWebViewScreenState extends State<LoginWebViewScreen> {
     _oauthEmAndamento = true;
     _oauthIniciado = true;
     LogHelper.d("OAuth BRLog: iniciando fluxo silencioso");
+    _oauthTimer?.cancel();
+    _oauthTimer = Timer(const Duration(seconds: 90), () {
+      if (_oauthEmAndamento && mounted) {
+        LogHelper.e("OAuth BRLog: timeout, seguindo sem sincronizar");
+        _oauthEmAndamento = false;
+        _finalizarLogin();
+      }
+    });
     _controller.loadRequest(Uri.parse(MicrosoftOAuth.getAuthorizeUrl()));
+  }
+
+  Future<void> _tratarPaginaOAuth(String url) async {
+    if (!url.startsWith("https://login.microsoftonline.com")) return;
+    if (MicrosoftOAuth.isRedirectUrl(url)) return;
+    final tipo = await _avaliarPaginaOAuth();
+    if (tipo == "login") {
+      if (!_oauthPaginaVisivel) {
+        _oauthPaginaVisivel = true;
+        if (mounted) setState(() => _carregando = false);
+      }
+      _preencherLoginBRLog();
+    } else if (tipo == "consent") {
+      if (!_oauthConsentimentoClicado) {
+        _oauthConsentimentoClicado = true;
+        await _controller.runJavaScript(
+          "(function(){var b=document.querySelector('input[type=submit]');"
+          "if(b){b.click();return 'ok';}return 'no';})()");
+      }
+    }
+  }
+
+  Future<String> _avaliarPaginaOAuth() async {
+    try {
+      final result = await _controller.runJavaScriptReturningResult(
+        "(function(){if(document.getElementById('i0116'))return 'login';"
+        "var b=document.querySelector('input[type=submit]');"
+        "if(b){var v=(b.value||b.getAttribute('value')||'').toLowerCase();"
+        "if(v.indexOf('accept')>=0||v.indexOf('aceitar')>=0||v.indexOf('concordar')>=0||v.indexOf('permitir')>=0)return 'consent';}"
+        "return 'none';})()");
+      if (result is String) return result.replaceAll('"', '').trim();
+      return 'none';
+    } catch (_) {
+      return 'none';
+    }
+  }
+
+  Future<void> _preencherLoginBRLog() async {
+    if (!_oauthEmAndamento || !mounted) return;
+    final url = await _controller.currentUrl();
+    if (url == null || !url.contains("login.microsoftonline.com")) return;
+    final email = _session.getUserEmail() ?? '';
+    final senha = _session.getSavedPassword() ?? '';
+    if (email.isEmpty || senha.isEmpty) return;
+    final script = _montarScriptPreenchimento(email, senha);
+    await _controller.runJavaScript(script);
   }
 
   void _tratarOAuth(String url) {
@@ -206,6 +266,7 @@ class _LoginWebViewScreenState extends State<LoginWebViewScreen> {
   }
 
   void _finalizarLogin() {
+    _oauthTimer?.cancel();
     if (_oauthSomente) {
       Navigator.of(context).pop();
       return;
@@ -240,6 +301,12 @@ class _LoginWebViewScreenState extends State<LoginWebViewScreen> {
 
   String _jsString(String s) =>
       '"${s.replaceAll('\\', '\\\\').replaceAll('"', '\\"')}"';
+
+  @override
+  void dispose() {
+    _oauthTimer?.cancel();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {

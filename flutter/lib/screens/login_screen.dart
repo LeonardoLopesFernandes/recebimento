@@ -52,7 +52,10 @@ class _LoginScreenState extends State<LoginScreen> {
   void _entrarMicrosoft() {
     Navigator.of(context).pushNamed(
       '/login_webview',
-      arguments: {'oauthOnly': true},
+      arguments: {
+        'autoLogin': false,
+        'oauthOnly': false,
+      },
     );
   }
 
