@@ -74,27 +74,46 @@ class _HomeBody extends StatelessWidget {
           Expanded(
             child: RefreshIndicator(
               onRefresh: () async => provider.refresh(),
-              child: provider.items.isEmpty && !provider.isLoading
-                  ? _EmptyState()
-                  : provider.isModoGrid
-                      ? GridView.builder(
-                          padding: const EdgeInsets.all(10),
-                          gridDelegate:
-                              const SliverGridDelegateWithFixedCrossAxisCount(
-                            crossAxisCount: 2,
-                            crossAxisSpacing: 10,
-                            mainAxisSpacing: 10,
-                            childAspectRatio: 0.72,
-                          ),
-                          itemCount: provider.items.length + 1,
-                          itemBuilder: (ctx, i) =>
-                              _itemBuilder(ctx, provider, i),
-                        )
-                      : ListView.builder(
-                          itemCount: provider.items.length + 1,
-                          itemBuilder: (ctx, i) =>
-                              _itemBuilder(ctx, provider, i),
-                        ),
+                  child: provider.items.isEmpty && !provider.isLoading
+                      ? _EmptyState()
+                      : provider.isModoGrid
+                          ? LayoutBuilder(
+                              builder: (ctx, constraints) {
+                                final cardW = (constraints.maxWidth - 10) / 2;
+                                final children = <Widget>[];
+                                for (int i = 0;
+                                    i < provider.items.length;
+                                    i++) {
+                                  children.add(SizedBox(
+                                    width: cardW,
+                                    child: _itemBuilder(ctx, provider, i),
+                                  ));
+                                }
+                                if (provider.isLoading) {
+                                  children.add(const SizedBox(
+                                    width: double.infinity,
+                                    child: Padding(
+                                      padding: EdgeInsets.all(16),
+                                      child: Center(
+                                          child: CircularProgressIndicator()),
+                                    ),
+                                  ));
+                                }
+                                return SingleChildScrollView(
+                                  padding: const EdgeInsets.all(10),
+                                  child: Wrap(
+                                    spacing: 10,
+                                    runSpacing: 10,
+                                    children: children,
+                                  ),
+                                );
+                              },
+                            )
+                          : ListView.builder(
+                              itemCount: provider.items.length + 1,
+                              itemBuilder: (ctx, i) =>
+                                  _itemBuilder(ctx, provider, i),
+                            ),
             ),
           ),
         ],
