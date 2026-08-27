@@ -59,7 +59,7 @@ class _HomeBody extends StatelessWidget {
                             crossAxisCount: 2,
                             crossAxisSpacing: 10,
                             mainAxisSpacing: 10,
-                            childAspectRatio: 0.52,
+                            childAspectRatio: 0.62,
                           ),
                           itemCount: provider.items.length + 1,
                           itemBuilder: (ctx, i) =>

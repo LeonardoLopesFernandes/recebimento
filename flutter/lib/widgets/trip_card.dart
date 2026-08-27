@@ -213,6 +213,9 @@ class TripCard extends StatelessWidget {
     final temProtocolo = recebimento.protocolo != null &&
         recebimento.protocolo!.isNotEmpty;
 
+    Widget info(String l, String v, {Color cor = const Color(Constants.textDark)}) =>
+        _coluna(l, v, cor: cor, labelSize: 9, valueSize: 11);
+
     return Container(
       decoration: BoxDecoration(
         color: Colors.white,
@@ -221,169 +224,157 @@ class TripCard extends StatelessWidget {
           BoxShadow(color: Colors.black12, blurRadius: 4, offset: Offset(0, 2)),
         ],
       ),
-      padding: const EdgeInsets.all(14),
+      padding: const EdgeInsets.all(10),
       child: Column(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          Row(
-            crossAxisAlignment: CrossAxisAlignment.start,
+          Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    const Text('Viagem',
-                        style: TextStyle(
-                            fontSize: 12,
-                            fontWeight: FontWeight.bold,
-                            color: Color(0xFF9E9E9E))),
-                    const SizedBox(height: 2),
-                    Text(numeroExibicao,
-                        style: const TextStyle(
-                            fontSize: 20,
-                            fontWeight: FontWeight.bold,
-                            color: Color(Constants.textDark))),
-                    if (temProtocolo)
-                      Padding(
-                        padding: const EdgeInsets.only(top: 6),
-                        child: Text(
-                          "Protocolo: ${recebimento.protocolo}",
-                          style: const TextStyle(
-                              fontSize: 12,
-                              fontWeight: FontWeight.bold,
-                              color: Color(Constants.primaryRed)),
-                        ),
-                      ),
-                  ],
-                ),
-              ),
-              InkWell(
-                onTap: onImprimir,
-                child: Padding(
-                  padding: const EdgeInsets.symmetric(
-                      horizontal: 6, vertical: 4),
-                  child: Row(
-                    children: [
-                      Image.asset('assets/drawables/printer.png',
-                          width: 18, height: 18, errorBuilder: (_, __, ___) =>
-                          const Icon(Icons.print, color: Color(Constants.primaryRed))),
-                      const SizedBox(width: 4),
-                      const Text('IMPRIMIR',
-                          style: TextStyle(
-                              fontSize: 12,
-                              fontWeight: FontWeight.bold,
-                              color: Color(Constants.primaryRed))),
-                    ],
-                  ),
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 10),
-          if (_isPendente && progresso != null)
-            Container(
-              margin: const EdgeInsets.only(bottom: 12),
-              child: Row(
+              Row(
+                crossAxisAlignment: CrossAxisAlignment.center,
                 children: [
                   const Expanded(
-                    child: Text('Progresso da viagem',
-                        style: TextStyle(fontSize: 11, color: Color(0xFF9E9E9E))),
+                    child: Text('Viagem',
+                        style: TextStyle(
+                            fontSize: 11,
+                            fontWeight: FontWeight.bold,
+                            color: Color(0xFF9E9E9E))),
                   ),
-                  Container(
-                    padding:
-                        const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
-                    decoration: BoxDecoration(
-                      color: const Color(Constants.primaryRed),
-                      borderRadius: BorderRadius.circular(6),
-                    ),
-                    child: Text(
-                      "${((progresso! > 1 ? progresso! / 100 : progresso!) * 100).toInt()}%",
-                      style: const TextStyle(
-                          color: Colors.white,
-                          fontWeight: FontWeight.bold,
-                          fontSize: 13),
+                  InkWell(
+                    onTap: onImprimir,
+                    child: Padding(
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 4, vertical: 2),
+                      child: Row(
+                        children: [
+                          Image.asset('assets/drawables/printer.png',
+                              width: 14, height: 14,
+                              errorBuilder: (_, __, ___) => const Icon(
+                                  Icons.print,
+                                  color: Color(Constants.primaryRed),
+                                  size: 14)),
+                          const SizedBox(width: 4),
+                          const Text('IMPRIMIR',
+                              style: TextStyle(
+                                  fontSize: 11,
+                                  fontWeight: FontWeight.bold,
+                                  color: Color(Constants.primaryRed))),
+                        ],
+                      ),
                     ),
                   ),
                 ],
               ),
-            ),
-          Row(
-            children: [
-              _coluna("Data", _formatarData()),
-              _coluna("Origem", recebimento.codigoOrigem),
-            ],
-          ),
-          const SizedBox(height: 8),
-          Row(
-            children: [
-              _coluna("Placa", recebimento.placaVeiculo ?? '-'),
-              _coluna(
-                is2026 ? "Roll" : "GUIA",
-                is2026
-                    ? "${CurrencyFormatter.formatarInteiro(recebimento.qtdRolls)} Rolls"
-                    : "${CurrencyFormatter.formatarInteiro(recebimento.qtdGuias)} Guias",
-                cor: const Color(Constants.primaryRed),
-              ),
-            ],
-          ),
-          const SizedBox(height: 12),
-          SizedBox(
-            height: 44,
-            child: InkWell(
-              onTap: onVisualizar,
-              child: Container(
-                decoration: BoxDecoration(
-                  border: Border.all(color: const Color(Constants.primaryRed)),
-                  borderRadius: BorderRadius.circular(8),
-                ),
-                child: const Center(
-                  child: Text('VISUALIZAR',
-                      style: TextStyle(
-                          color: Color(Constants.primaryRed),
-                          fontWeight: FontWeight.bold)),
-                ),
-              ),
-            ),
-          ),
-          if (_isPendente) ...[
-            const SizedBox(height: 8),
-            SizedBox(
-              height: 44,
-              child: InkWell(
-                onTap: onReceber,
-                child: Container(
-                  decoration: BoxDecoration(
-                    color: const Color(Constants.primaryRed),
-                    borderRadius: BorderRadius.circular(8),
-                  ),
-                  child: const Center(
-                    child: Text('RECEBER',
-                        style: TextStyle(
-                            color: Colors.white, fontWeight: FontWeight.bold)),
+              const SizedBox(height: 2),
+              Text(numeroExibicao,
+                  style: const TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.bold,
+                      color: Color(Constants.textDark))),
+              if (temProtocolo)
+                Padding(
+                  padding: const EdgeInsets.only(top: 2, bottom: 6),
+                  child: Text(
+                    "Protocolo: ${recebimento.protocolo}",
+                    style: const TextStyle(
+                        fontSize: 11,
+                        fontWeight: FontWeight.bold,
+                        color: Color(Constants.primaryRed)),
                   ),
                 ),
+              const Divider(height: 17, thickness: 1, color: Color(0xFFEEEEEE)),
+              Row(
+                children: [
+                  info("Data", _formatarData()),
+                  info("Origem", recebimento.codigoOrigem),
+                ],
               ),
-            ),
-          ],
+              const SizedBox(height: 6),
+              Row(
+                children: [
+                  info("Placa", recebimento.placaVeiculo ?? '-'),
+                  info(
+                    is2026 ? "Roll" : "GUIA",
+                    is2026
+                        ? "${CurrencyFormatter.formatarInteiro(recebimento.qtdRolls)} Rolls"
+                        : "${CurrencyFormatter.formatarInteiro(recebimento.qtdGuias)} Guias",
+                    cor: const Color(Constants.primaryRed),
+                  ),
+                ],
+              ),
+            ],
+          ),
+          Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              SizedBox(
+                height: 36,
+                child: InkWell(
+                  onTap: onVisualizar,
+                  child: Container(
+                    decoration: BoxDecoration(
+                      border:
+                          Border.all(color: const Color(Constants.primaryRed)),
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    child: const Center(
+                      child: Text('VISUALIZAR',
+                          style: TextStyle(
+                              color: Color(Constants.primaryRed),
+                              fontWeight: FontWeight.bold,
+                              fontSize: 12)),
+                    ),
+                  ),
+                ),
+              ),
+              if (_isPendente) ...[
+                const SizedBox(height: 8),
+                SizedBox(
+                  height: 36,
+                  child: InkWell(
+                    onTap: onReceber,
+                    child: Container(
+                      decoration: BoxDecoration(
+                        color: const Color(Constants.primaryRed),
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      child: const Center(
+                        child: Text('RECEBER',
+                            style: TextStyle(
+                                color: Colors.white,
+                                fontWeight: FontWeight.bold,
+                                fontSize: 12)),
+                      ),
+                    ),
+                  ),
+                ),
+              ],
+            ],
+          ),
         ],
       ),
     );
   }
 
-  Widget _coluna(String label, String valor, {Color cor = const Color(Constants.textDark)}) {
+  Widget _coluna(String label, String valor,
+      {Color cor = const Color(Constants.textDark),
+      double labelSize = 11,
+      double valueSize = 14}) {
     return Expanded(
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(label,
-              style: const TextStyle(
-                  fontSize: 11,
+              style: TextStyle(
+                  fontSize: labelSize,
                   fontWeight: FontWeight.bold,
                   color: Color(0xFF9E9E9E))),
           const SizedBox(height: 4),
           Text(valor,
               style: TextStyle(
-                  fontSize: 14, fontWeight: FontWeight.bold, color: cor)),
+                  fontSize: valueSize, fontWeight: FontWeight.bold, color: cor)),
         ],
       ),
     );
