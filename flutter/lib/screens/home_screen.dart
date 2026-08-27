@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 import '../models/recebimento.dart';
 import '../network/session_manager.dart';
@@ -32,16 +33,40 @@ class HomeScreen extends StatelessWidget {
   }
 }
 
+Future<void> _mostrarDialogoSaida(BuildContext context) async {
+  final sair = await showDialog<bool>(
+    context: context,
+    builder: (_) => AlertDialog(
+      title: const Text('Sair do aplicativo'),
+      content: const Text('Deseja realmente sair do aplicativo?'),
+      actions: [
+        TextButton(
+            onPressed: () => Navigator.of(context).pop(false),
+            child: const Text('Não')),
+        TextButton(
+            onPressed: () => Navigator.of(context).pop(true),
+            child: const Text('Sim')),
+      ],
+    ),
+  );
+  if (sair == true) SystemNavigator.pop();
+}
+
 class _HomeBody extends StatelessWidget {
   const _HomeBody();
 
   @override
   Widget build(BuildContext context) {
     final provider = Provider.of<MainProvider>(context);
-    return Scaffold(
-      backgroundColor: const Color(Constants.bgGray),
-      drawer: const _AppDrawer(),
-      body: Column(
+    return PopScope(
+      canPop: false,
+      onPopInvokedWithResult: (didPop, _) {
+        if (!didPop) _mostrarDialogoSaida(context);
+      },
+      child: Scaffold(
+        backgroundColor: const Color(Constants.bgGray),
+        drawer: const _AppDrawer(),
+        body: Column(
         children: [
           _Header(),
           _Badges(),
@@ -59,7 +84,7 @@ class _HomeBody extends StatelessWidget {
                             crossAxisCount: 2,
                             crossAxisSpacing: 10,
                             mainAxisSpacing: 10,
-                            childAspectRatio: 0.62,
+                            childAspectRatio: 0.72,
                           ),
                           itemCount: provider.items.length + 1,
                           itemBuilder: (ctx, i) =>
@@ -74,6 +99,7 @@ class _HomeBody extends StatelessWidget {
           ),
         ],
       ),
+    ),
     );
   }
 
