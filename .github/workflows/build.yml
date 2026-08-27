@@ -1,4 +1,4 @@
-name: Build APK (arm64-v8a)
+name: Build Flutter APK (arm64-v8a)
 
 on:
   push:
@@ -9,6 +9,9 @@ on:
 jobs:
   build:
     runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: flutter
 
     steps:
       - name: Checkout
@@ -29,6 +32,19 @@ jobs:
       - name: Install Android SDK packages
         run: sdkmanager "platforms;android-35" "build-tools;35.0.0"
 
+      - name: Setup Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          flutter-version: '3.38.5'
+          channel: 'stable'
+
+      - name: Patch Flutter Gradle plugin onVariants ABI bug
+        run: |
+          FILE="$FLUTTER_ROOT/packages/flutter_tools/gradle/src/main/kotlin/FlutterPluginUtils.kt"
+          if [ -f "$FILE" ] && grep -q "androidComponents.onVariants {" "$FILE"; then
+            sed -i 's/androidComponents.onVariants {/androidComponents.onVariants(androidComponents.selector().all()) {/' "$FILE"
+          fi
+
       - name: Generate CI keystore (release signing)
         run: |
           keytool -genkeypair -v \
@@ -38,11 +54,11 @@ jobs:
             -storepass android -keypass android \
             -dname "CN=Recebimento"
 
-      - name: Grant execute permission to gradlew
-        run: chmod +x ./gradlew
+      - name: Flutter pub get
+        run: flutter pub get
 
       - name: Build release APK (split arm64-v8a)
-        run: ./gradlew assembleRelease -PmicrosoftClientSecret=$microsoftClientSecret
+        run: flutter build apk --split-per-abi --target-platform android-arm64 --dart-define=MICROSOFT_CLIENT_SECRET=$microsoftClientSecret
         env:
           KEYSTORE_PATH: ${{ github.workspace }}/release-key.jks
           KEYSTORE_PASSWORD: android
@@ -53,5 +69,5 @@ jobs:
       - name: Upload arm64-v8a APK
         uses: actions/upload-artifact@v4
         with:
-          name: recebimento-arm64-v8a
-          path: app/build/outputs/apk/release/*arm64-v8a*.apk
+          name: recebimento-flutter-arm64-v8a
+          path: ${{ github.workspace }}/flutter/build/app/outputs/flutter-apk/*arm64-v8a*.apk
