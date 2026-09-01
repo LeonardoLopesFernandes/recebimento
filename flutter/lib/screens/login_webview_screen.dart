@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:webview_flutter/webview_flutter.dart';
 import '../models/brasil_risk.dart';
@@ -174,8 +175,58 @@ class _LoginWebViewScreenState extends State<LoginWebViewScreen> {
     _loginConcluido = true;
     _tokenEncontrado = true;
     if (mounted) setState(() => _carregando = true);
-    _session.saveToken(token);
-    _session.saveUserInfo("usuario@americanas.io", "Usuário", "L291");
+
+    // Decodifica claims do JWT
+    Map<String, dynamic>? claims;
+    try {
+      final parts = token.split('.');
+      if (parts.length == 3) {
+        var p = parts[1];
+        p = p.padRight(p.length + (4 - p.length % 4) % 4, '=');
+        final j = jsonDecode(utf8.decode(base64Url.decode(p)));
+        if (j is Map) claims = Map<String, dynamic>.from(j);
+      }
+    } catch (_) {}
+
+    // Salva token com expiry do JWT (exp)
+    _session.saveTokenWithExpiry(token,
+        expiryEpochSeconds: claims?['exp'] is int ? claims!['exp'] as int : null);
+
+    // Suporta JWT com claims aninhados em "user" (minhaloja/trocafacil)
+    // e flat (Microsoft OAuth padrão).
+    final user = claims?['user'] is Map
+        ? Map<String, dynamic>.from(claims!['user'])
+        : null;
+
+    String email = (user?['email'] ??
+            claims?['email'] ??
+            claims?['preferred_username'] ??
+            claims?['upn'])
+        ?.toString() ??
+        (_email.isNotEmpty ? _email : '');
+
+    String nome = (user?['nome'] ??
+            user?['name'] ??
+            claims?['name'] ??
+            claims?['given_name'])
+        ?.toString() ??
+        '';
+
+    final stores = user?['stores'] ?? claims?['stores'];
+    final loja = user?['loja']?.toString() ??
+        claims?['loja']?.toString() ??
+        (stores is List && stores.isNotEmpty ? stores.first.toString() : null);
+
+    if (email.isEmpty) email = 'usuario@americanas.io';
+    if (nome.isEmpty) {
+      nome = email.split('@').first.replaceAll('.', ' ').replaceAll('_', ' ');
+      nome = nome
+          .split(' ')
+          .map((w) => w.isNotEmpty ? w[0].toUpperCase() + w.substring(1) : w)
+          .join(' ');
+    }
+
+    _session.saveUserInfo(email, nome, loja ?? _session.getUserStore());
     _iniciarOAuthBRLog();
   }
 

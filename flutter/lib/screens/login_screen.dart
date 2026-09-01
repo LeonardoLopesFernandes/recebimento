@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'dart:convert';
 import '../network/session_manager.dart';
 import '../utils/constants.dart';
 
@@ -57,6 +58,118 @@ class _LoginScreenState extends State<LoginScreen> {
         'oauthOnly': false,
       },
     );
+  }
+
+  void _entrarComTokenManual() {
+    final tokenController = TextEditingController();
+    showDialog(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: const Text('Entrar com Token'),
+        content: TextField(
+          controller: tokenController,
+          maxLines: 3,
+          decoration: const InputDecoration(
+            hintText: 'Cole o token JWT aqui',
+            border: OutlineInputBorder(),
+          ),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx),
+            child: const Text('Cancelar'),
+          ),
+          ElevatedButton(
+            onPressed: () async {
+              final token = tokenController.text.trim();
+              if (token.isEmpty || token.length < 50) {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(content: Text('Token inválido')),
+                );
+                return;
+              }
+              Navigator.pop(ctx);
+              await _salvarTokenManual(token);
+            },
+            child: const Text('Entrar'),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Future<void> _salvarTokenManual(String token) async {
+    try {
+      final session = await SessionManager.create();
+      
+      // Decodifica claims do JWT
+      Map<String, dynamic>? claims;
+      try {
+        final parts = token.split('.');
+        if (parts.length == 3) {
+          var p = parts[1];
+          p = p.padRight(p.length + (4 - p.length % 4) % 4, '=');
+          final j = jsonDecode(utf8.decode(base64Url.decode(p)));
+          if (j is Map) claims = Map<String, dynamic>.from(j);
+        }
+      } catch (_) {}
+
+      // Salva token com expiry do JWT (exp)
+      session.saveTokenWithExpiry(token,
+          expiryEpochSeconds: claims?['exp'] is int ? claims!['exp'] as int : null);
+
+      // Suporta JWT com claims aninhados em "user" (minhaloja/trocafacil)
+      // e flat (Microsoft OAuth padrão).
+      final user = claims?['user'] is Map
+          ? Map<String, dynamic>.from(claims!['user'])
+          : null;
+
+      String email = (user?['email'] ??
+              claims?['email'] ??
+              claims?['preferred_username'] ??
+              claims?['upn'])
+          ?.toString() ??
+          '';
+
+      String nome = (user?['nome'] ??
+              user?['name'] ??
+              claims?['name'] ??
+              claims?['given_name'])
+          ?.toString() ??
+          '';
+
+      final stores = user?['stores'] ?? claims?['stores'];
+      final loja = user?['loja']?.toString() ??
+          claims?['loja']?.toString() ??
+          (stores is List && stores.isNotEmpty ? stores.first.toString() : null);
+
+      if (email.isEmpty) email = 'usuario@americanas.io';
+      if (nome.isEmpty) {
+        nome = email.split('@').first.replaceAll('.', ' ').replaceAll('_', ' ');
+        nome = nome
+            .split(' ')
+            .map((w) => w.isNotEmpty ? w[0].toUpperCase() + w.substring(1) : w)
+            .join(' ');
+      }
+
+      session.saveUserInfo(email, nome, loja ?? session.getUserStore());
+      
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Login realizado com sucesso'),
+            backgroundColor: Colors.green,
+          ),
+        );
+        Navigator.of(context).pushReplacementNamed('/home');
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Erro ao salvar token: $e')),
+        );
+      }
+    }
   }
 
   void _toast(String msg) {
@@ -195,6 +308,17 @@ class _LoginScreenState extends State<LoginScreen> {
                         ),
                         textStyle: const TextStyle(
                             fontSize: 14, fontWeight: FontWeight.bold),
+                      ),
+                    ),
+                    const SizedBox(height: 10),
+                    TextButton.icon(
+                      onPressed: _entrarComTokenManual,
+                      icon: const Icon(Icons.vpn_key, size: 18),
+                      label: const Text('ENTRAR COM TOKEN'),
+                      style: TextButton.styleFrom(
+                        foregroundColor: const Color(Constants.textDark),
+                        textStyle: const TextStyle(
+                            fontSize: 13, fontWeight: FontWeight.bold),
                       ),
                     ),
                   ],
