@@ -126,7 +126,7 @@ class SessionManager {
   }
 
   String? getUserEmail() => _prefs.getString(_keyUserEmail);
-  String? getUserStore() => _prefs.getString(_keyUserStore) ?? "L291";
+  String getUserStore() => _prefs.getString(_keyUserStore) ?? "L291";
 
   void saveCredentials(String email, String password) {
     _prefs.setString(_keyUserEmail, email);

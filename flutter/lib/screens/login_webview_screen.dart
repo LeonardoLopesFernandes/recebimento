@@ -226,7 +226,7 @@ class _LoginWebViewScreenState extends State<LoginWebViewScreen> {
           .join(' ');
     }
 
-    _session.saveUserInfo(email, nome, loja ?? _session.getUserStore());
+    _session.saveUserInfo(email, nome, loja ?? _session.getUserStore() ?? 'L291');
     _iniciarOAuthBRLog();
   }
 

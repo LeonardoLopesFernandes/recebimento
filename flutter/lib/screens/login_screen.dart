@@ -152,7 +152,7 @@ class _LoginScreenState extends State<LoginScreen> {
             .join(' ');
       }
 
-      session.saveUserInfo(email, nome, loja ?? session.getUserStore());
+      session.saveUserInfo(email, nome, loja ?? session.getUserStore() ?? 'L291');
       
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
