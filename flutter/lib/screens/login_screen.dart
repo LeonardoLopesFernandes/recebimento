@@ -192,7 +192,6 @@ class _LoginScreenState extends State<LoginScreen> {
                 width: 84,
                 height: 84,
                 decoration: const BoxDecoration(
-                  color: Colors.white,
                   shape: BoxShape.circle,
                 ),
                 child: Padding(
