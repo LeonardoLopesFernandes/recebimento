@@ -164,6 +164,19 @@
                 android:backgroundTint="#C62828"
                 app:cornerRadius="14dp"
                 android:textAllCaps="false" />
+            <!-- Botão ENTRAR VIA NAVEGADOR -->
+            <Button
+                android:id="@+id/btnEntrarNavegador"
+                android:layout_width="match_parent"
+                android:layout_height="48dp"
+                android:layout_marginTop="10dp"
+                android:text="ENTRAR VIA NAVEGADOR"
+                android:textSize="13sp"
+                android:fontFamily="sans-serif-bold"
+                android:textColor="#C62828"
+                android:backgroundTint="#00000000"
+                android:background="@drawable/bg_btn_outline_red"
+                android:textAllCaps="false" />
         </LinearLayout>
     </LinearLayout>
 

@@ -2,6 +2,7 @@ package io.recebimento.ui
 
 import android.content.Intent
 import android.graphics.drawable.TransitionDrawable
+import android.net.Uri
 import android.os.Bundle
 import android.os.Handler
 import android.os.Looper
@@ -53,6 +54,7 @@ class LoginActivity : AppCompatActivity() {
         val etSenha = findViewById<EditText>(R.id.etSenha)
         val btnSalvarCredenciais = findViewById<View>(R.id.btnSalvarCredenciais)
         imgCheckboxLogin = findViewById(R.id.imgCheckboxLogin)
+        val btnEntrarNavegador = findViewById<Button>(R.id.btnEntrarNavegador)
 
         etEmail.setText(sessionManager.getUserEmail() ?: "")
         etSenha.setText(sessionManager.getSavedPassword() ?: "")
@@ -158,6 +160,17 @@ class LoginActivity : AppCompatActivity() {
             startActivity(Intent(this, LoginWebViewActivity::class.java).apply {
                 putExtra(LoginWebViewActivity.EXTRA_AUTO_LOGIN, true)
             })
+        }
+
+        // Botão ENTRAR VIA NAVEGADOR: abre a URL de login no navegador externo
+        val loginUrl = "https://login.microsoftonline.com/e316d1ac-42c8-4d30-817c-12c7a71f8ab2/saml2?SAMLRequest=nVPLjhoxEPyVke%2Beh4fdYS1gRUBRkDYJApJDLlGPp2dx4gdxezYkXx8xQMIhy4Gru1RVXdUePe6tSV4wkPZuzIo0Z4%2BTEYE1Oznt4tat8EeHFJO9NY5kPxizLjjpgTRJBxZJRiXX0%2FdPUqS53AUfvfKGJYv5mH29K%2B%2BwflDQVrlohVICy5Yln8%2BCIs1ZsiDqcOEogotjJnJxz%2FN7LgYbUcqikqJMi7z4wpLlifqNdo12z9d91EcQyXebzZIvP643LJkjRe0g9tLbGHcks8z4Z%2B1Sq1Xw5NvondEOU%2BVthmVx3xSg%2BECoIR80Zc6HRaV4IVQFVdEOoRbZIRLBkikRhgPxzDvqLIY1hhet8NPq6Z8UGQ5d3Pqgf%2FcmUrAYtAIHlGqfWe22wI3%2FBpkCY2pQ39mxDNlHFC5auL48nN2wCcKwaaui4YhNyQfDhwEHqEtegWhzUau6yttRdiFyrv8DWFzMl95o9euW%2Bt%2F6YCG%2Bji7Son%2FRDW97qEQL2kybJiARS6bG%2BJ%2BzgBBxzGLokGVna6ejxKY%2F0Zl3Efc3nejM2x0ETYd7wD2oeM77knhmgGiF7S3pX4UpqQ7USLJztEOlW43NqYv%2FGZgcZ6%2Fs%2F3d6%2BW8nfwA%3D&sso_reload=true"
+        btnEntrarNavegador.setOnClickListener {
+            try {
+                val intent = Intent(Intent.ACTION_VIEW, Uri.parse(loginUrl))
+                startActivity(intent)
+            } catch (e: Exception) {
+                Toast.makeText(this, "Não foi possível abrir o navegador", Toast.LENGTH_SHORT).show()
+            }
         }
 
         if (sessionManager.hasSavedCredentials()) {
