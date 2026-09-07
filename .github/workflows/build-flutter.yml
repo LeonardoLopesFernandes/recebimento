@@ -70,6 +70,6 @@ jobs:
             Build automático a partir do commit `${{ github.sha }}`.
             APK Flutter **arm64-v8a** (release), split-per-abi.
             Instale sobre a versão anterior para atualizar (versionCode crescente).
-          files: recebimento-arm64-v8a-release.apk
+          files: flutter/recebimento-arm64-v8a-release.apk
           overwrite: true
           make_latest: true
