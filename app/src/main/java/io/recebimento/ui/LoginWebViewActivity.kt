@@ -12,7 +12,10 @@ import android.view.animation.AccelerateDecelerateInterpolator
 import android.webkit.*
 import android.widget.ImageView
 import android.widget.LinearLayout
+import android.widget.TextView
 import android.widget.Toast
+import java.util.Timer
+import java.util.TimerTask
 import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.lifecycleScope
 import io.recebimento.R
@@ -26,6 +29,10 @@ class LoginWebViewActivity : AppCompatActivity() {
     private lateinit var webView: WebView
     private lateinit var layoutCarregamentoCustom: LinearLayout
     private lateinit var imgLogoPreenchimento: ImageView
+    private lateinit var txtStatusCarregamento: TextView
+    private val uiHandler = Handler(Looper.getMainLooper())
+    private var autofillTimer: Timer? = null
+    private var safetyTimeout: Runnable? = null
     
     private var tokenEncontrado = false
     private var loginConcluido = false
@@ -60,8 +67,33 @@ class LoginWebViewActivity : AppCompatActivity() {
         webView = findViewById(R.id.webView)
         layoutCarregamentoCustom = findViewById(R.id.layoutCarregamentoCustom)
         imgLogoPreenchimento = findViewById(R.id.imgLogoPreenchimento)
+        txtStatusCarregamento = findViewById(R.id.txtStatusCarregamento)
 
         configurarWebView()
+        // Segurança: nunca prender o usuário no overlay. Após 60s sem concluir,
+        // revela a página para login manual (a captura do token segue ativa).
+        status("abrindo login...")
+        safetyTimeout = Runnable {
+            if (!loginConcluido && !isFinishing && !isDestroyed) {
+                layoutCarregamentoCustom.visibility = View.GONE
+                pararAnimacaoPulse()
+                status("")
+                Toast.makeText(
+                    applicationContext,
+                    "Demorou mais que o esperado. Complete o login na página.",
+                    Toast.LENGTH_LONG
+                ).show()
+            }
+        }
+        uiHandler.postDelayed(safetyTimeout!!, 60000)
+        // Autofill periódico (fluxo minha-loja): tenta a cada 1,5s além do page finished
+        autofillTimer = Timer()
+        autofillTimer?.scheduleAtFixedRate(object : TimerTask() {
+            override fun run() {
+                if (!autoLogin || loginConcluido || tokenEncontrado) return
+                runOnUiThread { preencherLoginAutomatico() }
+            }
+        }, 2000, 1500)
         if (oauthSomente) {
             iniciarOAuthBRLog()
         } else {
@@ -92,6 +124,16 @@ class LoginWebViewActivity : AppCompatActivity() {
             pulsoAnimator?.cancel()
             pulsoAnimator = null
             imgLogoPreenchimento.alpha = 1.0f
+        }
+    }
+
+    private fun status(msg: String) {
+        if (isFinishing || isDestroyed) return
+        runOnUiThread {
+            try {
+                txtStatusCarregamento.text = msg
+            } catch (_: Exception) {
+            }
         }
     }
 
@@ -139,6 +181,11 @@ class LoginWebViewActivity : AppCompatActivity() {
             webView.webViewClient = object : WebViewClient() {
                 override fun onPageStarted(view: WebView?, url: String?, favicon: android.graphics.Bitmap?) {
                     super.onPageStarted(view, url, favicon)
+                    try {
+                        val host = url?.let { android.net.Uri.parse(it).host } ?: ""
+                        if (host.isNotEmpty()) status("abrindo $host...")
+                    } catch (_: Exception) {
+                    }
                     exibirCarregamento(true)
 
                     if (url != null && !loginConcluido) {
@@ -152,11 +199,30 @@ class LoginWebViewActivity : AppCompatActivity() {
                     }
                 }
 
+                override fun onReceivedError(
+                    view: WebView?,
+                    request: WebResourceRequest?,
+                    error: WebResourceError?
+                ) {
+                    super.onReceivedError(view, request, error)
+                    if (loginConcluido || tokenEncontrado) return
+                    if (request?.isForMainFrame == true) {
+                        exibirCarregamento(false)
+                        status("erro ao carregar página")
+                        Toast.makeText(
+                            applicationContext,
+                            "Erro ao carregar: ${error?.description ?: "falha de rede"}. Verifique a internet.",
+                            Toast.LENGTH_LONG
+                        ).show()
+                    }
+                }
+
                 override fun onPageFinished(view: WebView?, url: String?) {
                     super.onPageFinished(view, url)
-                    
+
                     if (!loginConcluido && !tokenEncontrado) {
                         exibirCarregamento(false)
+                        status("página pronta")
                         verificarCookies()
                         
                         if (url != null && url.startsWith("https://minhaloja.americanas.io")) {
@@ -288,6 +354,7 @@ class LoginWebViewActivity : AppCompatActivity() {
         tokenEncontrado = true
 
         exibirCarregamento(true)
+        status("token encontrado! validando...")
 
         lifecycleScope.launch {
             try {
@@ -485,19 +552,13 @@ class LoginWebViewActivity : AppCompatActivity() {
         if (!urlAtual.contains("login.microsoftonline.com")) return
         if (System.currentTimeMillis() - ultimaInjecao < 1200) return
 
-        if (urlAtual == ultimaUrlPreenchida) {
-            tentativasMesmaPagina++
-        } else {
+        if (urlAtual != ultimaUrlPreenchida) {
             tentativasMesmaPagina = 0
             ultimaUrlPreenchida = urlAtual
         }
-        if (tentativasMesmaPagina >= 8) {
-            autoLogin = false
-            Toast.makeText(applicationContext, "Login automático falhou. Preencha manualmente.", Toast.LENGTH_LONG).show()
-            return
-        }
 
         ultimaInjecao = System.currentTimeMillis()
+        status("preenchendo login...")
         val script = montarScriptPreenchimento(emailCredencial, senhaCredencial)
         webView.evaluateJavascript(script) { resultado ->
             val r = resultado?.trim()?.trim('"') ?: ""
@@ -546,6 +607,16 @@ class LoginWebViewActivity : AppCompatActivity() {
 
     override fun onDestroy() {
         pararAnimacaoPulse()
+        try {
+            autofillTimer?.cancel()
+            autofillTimer = null
+        } catch (_: Exception) {
+        }
+        try {
+            safetyTimeout?.let { uiHandler.removeCallbacks(it) }
+            safetyTimeout = null
+        } catch (_: Exception) {
+        }
         try { webView.destroy() } catch (e: Exception) {}
         super.onDestroy()
     }
