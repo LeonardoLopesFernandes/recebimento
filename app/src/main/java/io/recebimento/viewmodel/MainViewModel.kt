@@ -194,6 +194,15 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
         val state = _uiState.value
         val filtered = response.recebimentos.filter { it.status.equals(state.currentStatus, ignoreCase = true) }
         allItems.addAll(filtered)
+        // Recebidas: garante ordem por data_recebimento (ISO ordena como string)
+        if (state.currentStatus.equals(Constants.STATUS_RECEBIDO, ignoreCase = true)) {
+            val desc = state.currentSort == "desc"
+            allItems.sortWith { a, b ->
+                val da = a.data_recebimento ?: ""
+                val db = b.data_recebimento ?: ""
+                if (desc) db.compareTo(da) else da.compareTo(db)
+            }
+        }
 
         _uiState.update { it.copy(
             isLoading = false,
