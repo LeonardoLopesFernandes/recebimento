@@ -1,11 +1,14 @@
 package io.recebimento.ui
 
+import android.content.ClipboardManager
+import android.content.Context
 import android.content.Intent
 import android.graphics.drawable.TransitionDrawable
 import android.net.Uri
 import android.os.Bundle
 import android.os.Handler
 import android.os.Looper
+import android.util.Base64
 import android.view.View
 import android.view.animation.AccelerateDecelerateInterpolator
 import android.view.animation.OvershootInterpolator
@@ -17,15 +20,35 @@ import android.widget.TextView
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.ContextCompat
+import androidx.lifecycle.lifecycleScope
 import io.recebimento.R
+import io.recebimento.network.ApiService
 import io.recebimento.network.SessionManager
 import io.recebimento.utils.LogHelper
+import kotlinx.coroutines.launch
+import okhttp3.Interceptor
+import okhttp3.OkHttpClient
+import org.json.JSONObject
+import retrofit2.Retrofit
+import retrofit2.converter.gson.GsonConverterFactory
+import java.util.concurrent.TimeUnit
 
 class LoginActivity : AppCompatActivity() {
 
     private var autoLoginDisparado = false
     private var salvarCredenciaisMarcado = false
     private lateinit var imgCheckboxLogin: ImageView
+    private var aguardandoRetornoNavegador = false
+    private var validandoToken = false
+    private var clipboardHash = ""
+    private var btnEntrarNavegador: Button? = null
+
+    override fun onResume() {
+        super.onResume()
+        if (aguardandoRetornoNavegador) {
+            checarClipboardParaToken()
+        }
+    }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -54,7 +77,6 @@ class LoginActivity : AppCompatActivity() {
         val etSenha = findViewById<EditText>(R.id.etSenha)
         val btnSalvarCredenciais = findViewById<View>(R.id.btnSalvarCredenciais)
         imgCheckboxLogin = findViewById(R.id.imgCheckboxLogin)
-        val btnEntrarNavegador = findViewById<Button>(R.id.btnEntrarNavegador)
 
         etEmail.setText(sessionManager.getUserEmail() ?: "")
         etSenha.setText(sessionManager.getSavedPassword() ?: "")
@@ -162,13 +184,32 @@ class LoginActivity : AppCompatActivity() {
             })
         }
 
-        // Botão ENTRAR VIA NAVEGADOR: abre a URL de login no navegador externo
-        val loginUrl = "https://login.microsoftonline.com/e316d1ac-42c8-4d30-817c-12c7a71f8ab2/saml2?SAMLRequest=nVPLjhoxEPyVke%2Beh4fdYS1gRUBRkDYJApJDLlGPp2dx4gdxezYkXx8xQMIhy4Gru1RVXdUePe6tSV4wkPZuzIo0Z4%2BTEYE1Oznt4tat8EeHFJO9NY5kPxizLjjpgTRJBxZJRiXX0%2FdPUqS53AUfvfKGJYv5mH29K%2B%2BwflDQVrlohVICy5Yln8%2BCIs1ZsiDqcOEogotjJnJxz%2FN7LgYbUcqikqJMi7z4wpLlifqNdo12z9d91EcQyXebzZIvP643LJkjRe0g9tLbGHcks8z4Z%2B1Sq1Xw5NvondEOU%2BVthmVx3xSg%2BECoIR80Zc6HRaV4IVQFVdEOoRbZIRLBkikRhgPxzDvqLIY1hhet8NPq6Z8UGQ5d3Pqgf%2FcmUrAYtAIHlGqfWe22wI3%2FBpkCY2pQ39mxDNlHFC5auL48nN2wCcKwaaui4YhNyQfDhwEHqEtegWhzUau6yttRdiFyrv8DWFzMl95o9euW%2Bt%2F6YCG%2Bji7Son%2FRDW97qEQL2kybJiARS6bG%2BJ%2BzgBBxzGLokGVna6ejxKY%2F0Zl3Efc3nejM2x0ETYd7wD2oeM77knhmgGiF7S3pX4UpqQ7USLJztEOlW43NqYv%2FGZgcZ6%2Fs%2F3d6%2BW8nfwA%3D&sso_reload=true"
-        btnEntrarNavegador.setOnClickListener {
+        // Botão ENTRAR VIA NAVEGADOR: abre o authorize no navegador externo e
+        // captura o token da área de transferência ao retornar (fluxo minha-loja)
+        btnEntrarNavegador = findViewById(R.id.btnEntrarNavegador)
+        btnEntrarNavegador?.setOnClickListener {
+            if (aguardandoRetornoNavegador) {
+                checarClipboardParaToken()
+                return@setOnClickListener
+            }
             try {
-                val intent = Intent(Intent.ACTION_VIEW, Uri.parse(loginUrl))
+                val cm = getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
+                clipboardHash = cm.primaryClip?.getItemAt(0)?.text?.toString() ?: ""
+                aguardandoRetornoNavegador = true
+                atualizarBotaoNavegador()
+                val intent = Intent(
+                    Intent.ACTION_VIEW,
+                    Uri.parse("https://sl-authorization.americanas.io/minha-loja")
+                )
                 startActivity(intent)
+                Toast.makeText(
+                    this,
+                    "Faça login no navegador, copie o token e volte ao app.",
+                    Toast.LENGTH_LONG
+                ).show()
             } catch (e: Exception) {
+                aguardandoRetornoNavegador = false
+                atualizarBotaoNavegador()
                 Toast.makeText(this, "Não foi possível abrir o navegador", Toast.LENGTH_SHORT).show()
             }
         }
@@ -183,6 +224,159 @@ class LoginActivity : AppCompatActivity() {
                 }
             }, 2500)
         }
+    }
+
+    private fun atualizarBotaoNavegador() {
+        btnEntrarNavegador?.text = if (aguardandoRetornoNavegador) {
+            "JÁ COPIEI O TOKEN, TENTAR NOVAMENTE"
+        } else {
+            "ENTRAR VIA NAVEGADOR"
+        }
+    }
+
+    private fun checarClipboardParaToken() {
+        if (validandoToken) return
+        try {
+            val cm = getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
+            val texto = cm.primaryClip?.getItemAt(0)?.text?.toString() ?: ""
+            if (texto.isEmpty() || texto == clipboardHash) return
+
+            var token = texto.trim()
+            if (token.startsWith("bearer ", ignoreCase = true)) {
+                token = token.substring(7).trim()
+            }
+            val cookieIdx = token.indexOf("newToken=")
+            if (cookieIdx >= 0) {
+                var value = token.substring(cookieIdx + "newToken=".length)
+                value = value.split(';', '&').firstOrNull() ?: value
+                token = value.trim()
+            }
+            if (token.contains("token=")) {
+                val qi = token.indexOf("token=")
+                var value = token.substring(qi + "token=".length)
+                value = value.split('&', ' ', '\n', '\r', '\t').firstOrNull() ?: value
+                token = Uri.decode(value.trim()).trim()
+            }
+
+            if (token.length < 50) {
+                Toast.makeText(
+                    this,
+                    "Nenhum token encontrado. Copie o token no navegador e volte ao app.",
+                    Toast.LENGTH_LONG
+                ).show()
+                return
+            }
+            if (token == clipboardHash) return
+            clipboardHash = token
+
+            validarToken(token)
+        } catch (e: Exception) {
+            LogHelper.e("BrowserLogin: erro ao ler clipboard", e)
+        }
+    }
+
+    private fun validarToken(token: String) {
+        if (validandoToken) return
+        validandoToken = true
+        Toast.makeText(this, "Token detectado! Validando...", Toast.LENGTH_SHORT).show()
+        lifecycleScope.launch {
+            try {
+                val sessionManager = SessionManager(applicationContext)
+                val store = sessionManager.getUserStore() ?: "L291"
+                val client = OkHttpClient.Builder()
+                    .connectTimeout(30, TimeUnit.SECONDS)
+                    .readTimeout(30, TimeUnit.SECONDS)
+                    .build()
+                val retrofit = Retrofit.Builder()
+                    .baseUrl("https://minhaloja-bff.americanas.io/")
+                    .client(client.newBuilder().addInterceptor(Interceptor { chain ->
+                        chain.proceed(
+                            chain.request().newBuilder()
+                                .header("Authorization", "Bearer $token")
+                                .header("User-Store", "minhaloja/$store")
+                                .build()
+                        )
+                    }).build())
+                    .addConverterFactory(GsonConverterFactory.create())
+                    .build()
+                val resp = retrofit.create(ApiService::class.java)
+                    .getRecebimentos(store, "pendente")
+                if (resp.isSuccessful) {
+                    val (email, nome, loja) = extrairInfoToken(token, store)
+                    sessionManager.saveToken(token)
+                    sessionManager.saveUserInfo(email, nome, loja)
+                    aguardandoRetornoNavegador = false
+                    validandoToken = false
+                    Toast.makeText(applicationContext, "Login realizado com sucesso", Toast.LENGTH_SHORT).show()
+                    val intent = Intent(this@LoginActivity, MainActivity::class.java).apply {
+                        flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
+                    }
+                    startActivity(intent)
+                    finish()
+                } else {
+                    validandoToken = false
+                    runOnUiThread {
+                        atualizarBotaoNavegador()
+                        Toast.makeText(
+                            this@LoginActivity,
+                            "Token detectado mas rejeitado (HTTP ${resp.code()}). Tente copiar o token novamente.",
+                            Toast.LENGTH_LONG
+                        ).show()
+                    }
+                }
+            } catch (e: Exception) {
+                LogHelper.e("BrowserLogin: erro ao validar token", e)
+                validandoToken = false
+                runOnUiThread {
+                    atualizarBotaoNavegador()
+                    Toast.makeText(
+                        this@LoginActivity,
+                        "Token detectado mas não foi possível validar.",
+                        Toast.LENGTH_LONG
+                    ).show()
+                }
+            }
+        }
+    }
+
+    private fun extrairInfoToken(token: String, storeAtual: String): Triple<String, String, String> {
+        try {
+            val parts = token.split(".")
+            if (parts.size == 3) {
+                var p = parts[1]
+                while (p.length % 4 != 0) p += "="
+                val decoded = String(
+                    Base64.decode(p.replace("-", "+").replace("_", "/"), Base64.DEFAULT),
+                    Charsets.UTF_8
+                )
+                val json = JSONObject(decoded)
+                val user = json.optJSONObject("user")
+                var email = user?.optString("email")
+                    ?: json.optString("email", json.optString("preferred_username", ""))
+                var nome = user?.optString("nome")
+                    ?: user?.optString("name")
+                    ?: json.optString("name", json.optString("given_name", ""))
+                var loja = user?.optString("loja")
+                    ?: json.optString("loja", "")
+                if (loja.isNullOrEmpty()) {
+                    val stores = user?.optJSONArray("stores") ?: json.optJSONArray("stores")
+                    loja = if (stores != null && stores.length() > 0) stores.optString(0) else storeAtual
+                }
+                if (email.isNullOrEmpty()) email = "usuario@americanas.io"
+                if (nome.isNullOrEmpty()) {
+                    nome = email.split("@").first()
+                        .replace(".", " ").replace("_", " ")
+                        .split(" ").joinToString(" ") {
+                            if (it.isNotEmpty()) it[0].uppercase() + it.substring(1) else it
+                        }
+                }
+                if (loja.isNullOrEmpty()) loja = storeAtual
+                return Triple(email, nome, loja)
+            }
+        } catch (e: Exception) {
+            LogHelper.e("BrowserLogin: erro ao decodificar JWT", e)
+        }
+        return Triple("usuario@americanas.io", "Usuário", storeAtual)
     }
 
     private fun animarCheckbox() {
