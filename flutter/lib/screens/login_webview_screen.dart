@@ -170,7 +170,9 @@ class _LoginWebViewScreenState extends State<LoginWebViewScreen> {
     }
   }
 
-  void _salvarToken(String token) {
+  /// Fluxo minha-loja: valida o token no BFF e vai direto para a home.
+  /// A sincronização BRLog fica on-demand no menu (oauthOnly).
+  Future<void> _salvarToken(String token) async {
     if (_loginConcluido) return;
     _loginConcluido = true;
     _tokenEncontrado = true;
@@ -227,7 +229,33 @@ class _LoginWebViewScreenState extends State<LoginWebViewScreen> {
     }
 
     _session.saveUserInfo(email, nome, loja ?? _session.getUserStore() ?? 'L291');
-    _iniciarOAuthBRLog();
+
+    try {
+      final store = _session.getUserStore() ?? 'L291';
+      await _apiService.getRecebimentos(
+        storeId: store,
+        status: Constants.statusPendente,
+        sort: 'desc',
+      );
+      _irParaHome();
+    } catch (e) {
+      LogHelper.e("token rejeitado pelo BFF", e);
+      _loginConcluido = false;
+      _tokenEncontrado = false;
+      _session.clearToken();
+      if (mounted) {
+        setState(() => _carregando = false);
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Token rejeitado. Tente novamente.')),
+        );
+      }
+    }
+  }
+
+  void _irParaHome() {
+    _oauthTimer?.cancel();
+    if (!mounted) return;
+    Navigator.of(context).pushReplacementNamed('/home');
   }
 
   void _iniciarOAuthBRLog() {
