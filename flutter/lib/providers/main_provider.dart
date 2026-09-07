@@ -149,6 +149,18 @@ class MainProvider extends ChangeNotifier {
           .where((r) => r.status.toLowerCase() == currentStatus.toLowerCase())
           .toList();
       _allItems.addAll(filtered);
+      if (currentStatus == Constants.statusRecebido) {
+        _allItems.sort((a, b) {
+          final da = DateTime.tryParse(a.dataRecebimento ?? '');
+          final db = DateTime.tryParse(b.dataRecebimento ?? '');
+          if (da == null && db == null) return 0;
+          if (da == null) return 1;
+          if (db == null) return -1;
+          return currentSort == "desc"
+              ? db.compareTo(da)
+              : da.compareTo(db);
+        });
+      }
       currentPage = page;
       isLastPage = page >= response.totalPages;
       totalItems = response.totalItems;

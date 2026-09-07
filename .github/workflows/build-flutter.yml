@@ -1,0 +1,75 @@
+name: Build Flutter APK (arm64-v8a)
+
+on:
+  push:
+    branches: [ main ]
+    tags: [ 'v*' ]
+    paths:
+      - 'flutter/**'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: flutter
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: '17'
+
+      - name: Set up Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          flutter-version: '3.38.5'
+          channel: 'stable'
+          cache: true
+
+      - name: Decode keystore
+        env:
+          KEYSTORE_BASE64: ${{ secrets.KEYSTORE_BASE64 }}
+        run: |
+          echo "$KEYSTORE_BASE64" | base64 -d > android/upload-keystore.jks
+
+      - name: Accept Android licenses
+        run: yes | flutter doctor --android-licenses || true
+
+      - name: Install dependencies
+        run: flutter pub get
+
+      - name: Build APK (split-per-abi arm64-v8a, release)
+        run: flutter build apk --release --split-per-abi --target-platform android-arm64 --build-number=${{ github.run_number }} --build-name=1.0.${{ github.run_number }} --dart-define=MICROSOFT_CLIENT_SECRET=${{ secrets.MICROSOFT_CLIENT_SECRET }}
+        env:
+          KEYSTORE_PATH: ${{ github.workspace }}/flutter/android/upload-keystore.jks
+          KEYSTORE_PASSWORD: ${{ secrets.KEYSTORE_PASSWORD }}
+          KEY_ALIAS: ${{ secrets.KEY_ALIAS }}
+          KEY_PASSWORD: ${{ secrets.KEY_PASSWORD }}
+
+      - name: Rename APK
+        run: mv build/app/outputs/flutter-apk/app-arm64-v8a-release.apk recebimento-arm64-v8a-release.apk
+
+      - name: Cleanup keystore
+        if: always()
+        run: rm -f android/upload-keystore.jks
+
+      - name: Create or update release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ github.ref_type == 'tag' && github.ref_name || 'latest' }}
+          name: Recebimento (${{ github.ref_type == 'tag' && github.ref_name || 'latest' }})
+          body: |
+            Build automático a partir do commit `${{ github.sha }}`.
+            APK Flutter **arm64-v8a** (release), split-per-abi.
+            Instale sobre a versão anterior para atualizar (versionCode crescente).
+          files: recebimento-arm64-v8a-release.apk
+          overwrite: true
+          make_latest: true
