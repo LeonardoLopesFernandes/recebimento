@@ -71,22 +71,22 @@ class _HomeBody extends StatelessWidget {
           _Header(),
           _Badges(),
           if (provider.showSearch) _BuscaFiltros(),
+          if (provider.currentStatus == Constants.statusRecebido)
+            _FiltroMes(),
           Expanded(
             child: RefreshIndicator(
               onRefresh: () async => provider.refresh(),
-                  child: provider.items.isEmpty && !provider.isLoading
+                  child: provider.itemsVisiveis.isEmpty && !provider.isLoading
                       ? _EmptyState()
                       : provider.isModoGrid
                             ? LayoutBuilder(
                               builder: (ctx, constraints) {
                                 final cardW = (constraints.maxWidth - 30) / 2;
                                 final children = <Widget>[];
-                                for (int i = 0;
-                                    i < provider.items.length;
-                                    i++) {
+                                for (final r in provider.itemsVisiveis) {
                                   children.add(SizedBox(
                                     width: cardW,
-                                    child: _itemBuilder(ctx, provider, i),
+                                    child: _tripCard(ctx, provider, r),
                                   ));
                                 }
                                 if (provider.isLoading) {
@@ -109,11 +109,14 @@ class _HomeBody extends StatelessWidget {
                                 );
                               },
                             )
-                          : ListView.builder(
-                              itemCount: provider.items.length + 1,
-                              itemBuilder: (ctx, i) =>
-                                  _itemBuilder(ctx, provider, i),
-                            ),
+                          : (provider.currentStatus ==
+                                  Constants.statusRecebido
+                              ? _listaAgrupada(context, provider)
+                              : ListView.builder(
+                                  itemCount: provider.items.length + 1,
+                                  itemBuilder: (ctx, i) =>
+                                      _itemBuilder(ctx, provider, i),
+                                )),
             ),
           ),
         ],
@@ -132,7 +135,11 @@ class _HomeBody extends StatelessWidget {
       }
       return const SizedBox.shrink();
     }
-    final r = provider.items[i];
+    return _tripCard(context, provider, provider.items[i]);
+  }
+
+  Widget _tripCard(
+      BuildContext context, MainProvider provider, Recebimento r) {
     final numero = r.id.length > 7 ? r.id.substring(r.id.length - 7) : r.id;
     return TripCard(
       recebimento: r,
@@ -143,6 +150,36 @@ class _HomeBody extends StatelessWidget {
       onImprimir: () => _gerarExcel(context, r),
       onReceber: () => _gerarProtocolo(context, r),
     );
+  }
+
+  Widget _listaAgrupada(BuildContext context, MainProvider provider) {
+    final children = <Widget>[];
+    String? mesAtual;
+    for (final r in provider.itemsVisiveis) {
+      final chave = MainProvider.mesKeyOf(r);
+      if (chave != null && chave != mesAtual) {
+        mesAtual = chave;
+        children.add(Padding(
+          padding: const EdgeInsets.fromLTRB(16, 12, 16, 6),
+          child: Text(
+            MainProvider.rotuloMes(chave).toUpperCase(),
+            style: const TextStyle(
+              fontSize: 12,
+              fontWeight: FontWeight.bold,
+              color: Color(Constants.primaryRed),
+            ),
+          ),
+        ));
+      }
+      children.add(_tripCard(context, provider, r));
+    }
+    if (provider.isLoading) {
+      children.add(const Padding(
+        padding: EdgeInsets.all(16),
+        child: Center(child: CircularProgressIndicator()),
+      ));
+    }
+    return ListView(children: children);
   }
 
   void _gerarExcel(BuildContext context, Recebimento r) async {
@@ -444,6 +481,40 @@ class _BuscaFiltros extends StatelessWidget {
           ),
         ),
       ],
+    );
+  }
+}
+
+class _FiltroMes extends StatelessWidget {
+  const _FiltroMes();
+
+  @override
+  Widget build(BuildContext context) {
+    final provider = Provider.of<MainProvider>(context);
+    final meses = provider.mesesDisponiveis;
+    if (meses.length < 2) return const SizedBox.shrink();
+    return Container(
+      height: 40,
+      margin: const EdgeInsets.only(left: 16, bottom: 4),
+      child: ListView(
+        scrollDirection: Axis.horizontal,
+        children: [
+          _Pill(
+            text: 'TODAS',
+            ativo: provider.filtroMes == null,
+            onTap: () => provider.setFiltroMes(null),
+          ),
+          const SizedBox(width: 6),
+          for (final m in meses) ...[
+            _Pill(
+              text: MainProvider.rotuloMes(m).toUpperCase(),
+              ativo: provider.filtroMes == m,
+              onTap: () => provider.setFiltroMes(m),
+            ),
+            const SizedBox(width: 6),
+          ],
+        ],
+      ),
     );
   }
 }
