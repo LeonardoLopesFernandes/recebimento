@@ -21,7 +21,6 @@ class MainProvider extends ChangeNotifier {
   bool isLastPage = false;
   String currentSort = "desc";
   String searchQuery = "";
-  String? filtroMes;
   List<Recebimento> items = [];
   int totalItems = 0;
   String qtdReceber = "0";
@@ -58,7 +57,6 @@ class MainProvider extends ChangeNotifier {
     };
     showSearch = status == Constants.statusRecebido;
     currentStatus = status;
-    filtroMes = null;
     notifyListeners();
     loadRecebimentos(reset: true);
   }
@@ -78,44 +76,6 @@ class MainProvider extends ChangeNotifier {
   void setModoGrid(bool grid) {
     isModoGrid = grid;
     notifyListeners();
-  }
-
-  static const List<String> _nomesMeses = [
-    'Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho',
-    'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro'
-  ];
-
-  static String? mesKeyOf(Recebimento r) {
-    final d = DateTime.tryParse(r.dataRecebimento ?? '');
-    if (d == null) return null;
-    return '${d.year}-${d.month.toString().padLeft(2, '0')}';
-  }
-
-  static String rotuloMes(String key) {
-    final partes = key.split('-');
-    final ano = int.tryParse(partes[0]) ?? 0;
-    final mes = int.tryParse(partes[1]) ?? 1;
-    return '${_nomesMeses[(mes - 1).clamp(0, 11)]} $ano';
-  }
-
-  List<String> get mesesDisponiveis {
-    final set = <String>{};
-    for (final r in _allItems) {
-      final k = mesKeyOf(r);
-      if (k != null) set.add(k);
-    }
-    final lista = set.toList()..sort((a, b) => b.compareTo(a));
-    return lista;
-  }
-
-  void setFiltroMes(String? mes) {
-    filtroMes = mes;
-    notifyListeners();
-  }
-
-  List<Recebimento> get itemsVisiveis {
-    if (filtroMes == null) return List.from(items);
-    return items.where((r) => mesKeyOf(r) == filtroMes).toList();
   }
 
   void refresh() {
@@ -163,17 +123,6 @@ class MainProvider extends ChangeNotifier {
     }
   }
 
-  void _ordenarRecebidos() {
-    _allItems.sort((a, b) {
-      final da = DateTime.tryParse(a.dataRecebimento ?? '');
-      final db = DateTime.tryParse(b.dataRecebimento ?? '');
-      if (da == null && db == null) return 0;
-      if (da == null) return 1;
-      if (db == null) return -1;
-      return currentSort == "desc" ? db.compareTo(da) : da.compareTo(db);
-    });
-  }
-
   Future<void> loadRecebimentos({required bool reset}) async {
     if (isLoading) return;
     if (!reset && isLastPage) return;
@@ -187,40 +136,9 @@ class MainProvider extends ChangeNotifier {
     notifyListeners();
 
     final search = searchQuery.isNotEmpty ? searchQuery : null;
+    final page = reset ? 1 : currentPage + 1;
 
     try {
-      // Recebidas: a API ordena/pagina por data de embarque, então traz
-      // todas as páginas e ordena por data de recebimento no cliente.
-      if (currentStatus == Constants.statusRecebido && reset) {
-        var page = 1;
-        var totalPages = 1;
-        do {
-          final response = await apiService.getRecebimentos(
-            storeId: storeId,
-            status: currentStatus,
-            search: search,
-            sort: currentSort,
-            page: page,
-          );
-          _allItems.addAll(response.recebimentos
-              .where((r) =>
-                  r.status.toLowerCase() == currentStatus.toLowerCase()));
-          totalItems = response.totalItems;
-          totalPages = response.totalPages;
-          page++;
-        } while (page <= totalPages && page <= 50);
-        _ordenarRecebidos();
-        currentPage = totalPages;
-        isLastPage = true;
-        items = List.from(_allItems);
-        progressoViagem = sessionManager.getBrlogProgress();
-        isLoading = false;
-        isRefreshing = false;
-        notifyListeners();
-        return;
-      }
-
-      final page = reset ? 1 : currentPage + 1;
       final response = await apiService.getRecebimentos(
         storeId: storeId,
         status: currentStatus,
@@ -232,6 +150,18 @@ class MainProvider extends ChangeNotifier {
           .where((r) => r.status.toLowerCase() == currentStatus.toLowerCase())
           .toList();
       _allItems.addAll(filtered);
+      if (currentStatus == Constants.statusRecebido) {
+        _allItems.sort((a, b) {
+          final da = DateTime.tryParse(a.dataRecebimento ?? '');
+          final db = DateTime.tryParse(b.dataRecebimento ?? '');
+          if (da == null && db == null) return 0;
+          if (da == null) return 1;
+          if (db == null) return -1;
+          return currentSort == "desc"
+              ? db.compareTo(da)
+              : da.compareTo(db);
+        });
+      }
       currentPage = page;
       isLastPage = page >= response.totalPages;
       totalItems = response.totalItems;
