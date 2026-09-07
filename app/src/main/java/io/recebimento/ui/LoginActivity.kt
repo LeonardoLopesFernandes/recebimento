@@ -22,16 +22,10 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.ContextCompat
 import androidx.lifecycle.lifecycleScope
 import io.recebimento.R
-import io.recebimento.network.ApiService
 import io.recebimento.network.SessionManager
 import io.recebimento.utils.LogHelper
 import kotlinx.coroutines.launch
-import okhttp3.Interceptor
-import okhttp3.OkHttpClient
 import org.json.JSONObject
-import retrofit2.Retrofit
-import retrofit2.converter.gson.GsonConverterFactory
-import java.util.concurrent.TimeUnit
 
 class LoginActivity : AppCompatActivity() {
 
@@ -283,23 +277,9 @@ class LoginActivity : AppCompatActivity() {
             try {
                 val sessionManager = SessionManager(applicationContext)
                 val store = sessionManager.getUserStore() ?: "L291"
-                val client = OkHttpClient.Builder()
-                    .connectTimeout(30, TimeUnit.SECONDS)
-                    .readTimeout(30, TimeUnit.SECONDS)
-                    .build()
-                val retrofit = Retrofit.Builder()
-                    .baseUrl("https://minhaloja-bff.americanas.io/")
-                    .client(client.newBuilder().addInterceptor(Interceptor { chain ->
-                        chain.proceed(
-                            chain.request().newBuilder()
-                                .header("Authorization", "Bearer $token")
-                                .header("User-Store", "minhaloja/$store")
-                                .build()
-                        )
-                    }).build())
-                    .addConverterFactory(GsonConverterFactory.create())
-                    .build()
-                val resp = retrofit.create(ApiService::class.java)
+                val resp = io.recebimento.network.ApiClient
+                    .getInstance(applicationContext)
+                    .getApiServiceWithToken(token)
                     .getRecebimentos(store, "pendente")
                 if (resp.isSuccessful) {
                     val (email, nome, loja) = extrairInfoToken(token, store)

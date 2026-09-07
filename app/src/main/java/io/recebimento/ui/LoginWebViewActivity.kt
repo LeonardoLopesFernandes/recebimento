@@ -14,9 +14,12 @@ import android.widget.ImageView
 import android.widget.LinearLayout
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
+import androidx.lifecycle.lifecycleScope
 import io.recebimento.R
+import io.recebimento.network.ApiClient
 import io.recebimento.network.SessionManager
 import io.recebimento.utils.LogHelper
+import kotlinx.coroutines.launch
 
 class LoginWebViewActivity : AppCompatActivity() {
 
@@ -275,6 +278,10 @@ class LoginWebViewActivity : AppCompatActivity() {
         }
     }
 
+    /**
+     * Fluxo minha-loja: valida o token no BFF e entra direto na Main.
+     * A sincronização BRLog fica on-demand no menu (EXTRA_OAUTH_ONLY).
+     */
     private fun salvarToken(token: String) {
         if (loginConcluido) return
         loginConcluido = true
@@ -282,15 +289,32 @@ class LoginWebViewActivity : AppCompatActivity() {
 
         exibirCarregamento(true)
 
-        try {
-            val sessionManager = SessionManager(applicationContext)
-            sessionManager.saveToken(token)
-            sessionManager.saveUserInfo("usuario@americanas.io", "Usuário", "L291")
-            iniciarOAuthBRLog()
-        } catch (e: Exception) {
-            loginConcluido = false
-            tokenEncontrado = false
-            exibirCarregamento(false)
+        lifecycleScope.launch {
+            try {
+                val sessionManager = SessionManager(applicationContext)
+                val store = sessionManager.getUserStore() ?: "L291"
+                val resp = ApiClient.getInstance(applicationContext)
+                    .getApiServiceWithToken(token)
+                    .getRecebimentos(store, "pendente")
+                if (!resp.isSuccessful) {
+                    throw Exception("HTTP ${resp.code()}")
+                }
+                sessionManager.saveToken(token)
+                sessionManager.saveUserInfo("usuario@americanas.io", "Usuário", "L291")
+                finalizarLogin()
+            } catch (e: Exception) {
+                LogHelper.e("WebView: token rejeitado pelo BFF", e)
+                loginConcluido = false
+                tokenEncontrado = false
+                exibirCarregamento(false)
+                runOnUiThread {
+                    Toast.makeText(
+                        applicationContext,
+                        "Token rejeitado. Tente novamente.",
+                        Toast.LENGTH_LONG
+                    ).show()
+                }
+            }
         }
     }
 

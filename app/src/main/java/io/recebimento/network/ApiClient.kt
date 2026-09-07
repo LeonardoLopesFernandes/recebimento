@@ -66,4 +66,31 @@ class ApiClient(private val context: Context) {
         }
         return apiService!!
     }
+
+    /** Serviço com Bearer explícito (validação de token candidato). */
+    fun getApiServiceWithToken(token: String): ApiService {
+        val storeId = sessionManager.getUserStore() ?: "L291"
+        val client = OkHttpClient.Builder()
+            .addInterceptor { chain ->
+                chain.proceed(
+                    chain.request().newBuilder()
+                        .header("Authorization", "Bearer $token")
+                        .header("Content-Type", "application/json")
+                        .header("User-Store", "minhaloja/$storeId")
+                        .header("Platform-Version", "minhaloja/4.0.5")
+                        .header("Accept", "application/json, text/plain, */*")
+                        .build()
+                )
+            }
+            .connectTimeout(30, TimeUnit.SECONDS)
+            .readTimeout(30, TimeUnit.SECONDS)
+            .writeTimeout(30, TimeUnit.SECONDS)
+            .build()
+        return Retrofit.Builder()
+            .baseUrl(BASE_URL)
+            .client(client)
+            .addConverterFactory(GsonConverterFactory.create())
+            .build()
+            .create(ApiService::class.java)
+    }
 }
