@@ -40,6 +40,7 @@ class MainProvider extends ChangeNotifier {
     apiService = ApiService(apiClient);
     progressoViagem = sessionManager.getBrlogProgress();
     carregarDashboard();
+    loadRecebimentos(reset: true);
     sincronizarProgressoBRLog();
   }
 

@@ -127,7 +127,7 @@ class MainActivity : AppCompatActivity() {
         observeState()
         observeEvents()
 
-        selecionarBotao(btnViagensReceber)
+        selecionarTab(Constants.STATUS_PENDENTE, btnViagensReceber)
 
         btnOrdenarRecente.backgroundTintList = null
         btnOrdenarAntigo.backgroundTintList = null
