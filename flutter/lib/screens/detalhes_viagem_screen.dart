@@ -258,16 +258,26 @@ class _DetalhesViagemScreenState extends State<DetalhesViagemScreen> {
 
   void _gerarExcel() async {
     if (_detalhes == null) return;
-    ScaffoldMessenger.of(context)
-        .showSnackBar(const SnackBar(content: Text("📥 Baixando relatório...")));
+    ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+        content: Row(children: [
+      Image.asset('assets/drawables/excel.png',
+          width: 20, height: 20, fit: BoxFit.contain,
+          color: Colors.white, colorBlendMode: BlendMode.srcIn),
+      const SizedBox(width: 10),
+      const Expanded(child: Text('Baixando relatório...')),
+    ])));
     try {
       final path = await ExcelDownloader.gerarExcel(
         apiService: _api,
         storeId: _storeId,
         viagemId: _detalhes!.viagemId,
       );
-      ScaffoldMessenger.of(context)
-          .showSnackBar(SnackBar(content: Text("✅ Excel salvo: $path")));
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+          content: Row(children: [
+        const Icon(Icons.check_box, color: Colors.white, size: 20),
+        const SizedBox(width: 10),
+        Expanded(child: Text("Excel salvo: $path")),
+      ])));
     } catch (e) {
       ScaffoldMessenger.of(context)
           .showSnackBar(SnackBar(content: Text("❌ $e")));

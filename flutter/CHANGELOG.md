@@ -4,6 +4,7 @@ Todas as mudanças notáveis do Recebimento. O topo deste arquivo é publicado
 automaticamente como nota (notes) no release/patch do Shorebird.
 
 ## [Não lançado]
+- SnackBars de geração/salvamento de Excel/PDF com ícones (arquivo branco + checkbox)
 - Novo header nas telas de itens (gradiente, botões XLS/PDF, card de Total) — Itens de Risco, Busca Geral, Ver Tudo e guias
 - Ícone de Excel da toolbar (detalhes da viagem) pintado de branco
 - Ícones de Excel e PDF com assets próprios (excel.png/pdf.png) nos botões

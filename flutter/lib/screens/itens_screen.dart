@@ -50,14 +50,19 @@ class _ItensScreenState extends State<ItensScreen> {
       _snack("Nenhum item para gerar Excel.");
       return;
     }
-    _snack("📥 Gerando Excel...");
+    _snackCom(
+        Image.asset('assets/drawables/excel.png',
+            width: 20, height: 20, fit: BoxFit.contain,
+            color: Colors.white, colorBlendMode: BlendMode.srcIn),
+        'Gerando Excel...');
     try {
       final path = await ExcelDownloader.gerarXlsxItens(
         viagemId: _titulo,
         prefixo: "itens",
         itens: _todos,
       );
-      _snack("✅ Excel salvo: $path");
+      _snackCom(const Icon(Icons.check_box, color: Colors.white, size: 20),
+          'Excel salvo: $path');
     } catch (e) {
       _snack("❌ $e");
     }
@@ -68,7 +73,11 @@ class _ItensScreenState extends State<ItensScreen> {
       _snack("Nenhum item para gerar PDF.");
       return;
     }
-    _snack("📥 Gerando PDF...");
+    _snackCom(
+        Image.asset('assets/drawables/pdf.png',
+            width: 20, height: 20, fit: BoxFit.contain,
+            color: Colors.white, colorBlendMode: BlendMode.srcIn),
+        'Gerando PDF...');
     try {
       final path = await ExcelDownloader.gerarPdfItens(
         titulo: _titulo,
@@ -76,7 +85,8 @@ class _ItensScreenState extends State<ItensScreen> {
         itens: _todos,
         total: _soma,
       );
-      _snack("✅ PDF salvo: $path");
+      _snackCom(const Icon(Icons.check_box, color: Colors.white, size: 20),
+          'PDF salvo: $path');
     } catch (e) {
       _snack("❌ $e");
     }
@@ -85,6 +95,18 @@ class _ItensScreenState extends State<ItensScreen> {
   void _snack(String msg) {
     ScaffoldMessenger.of(context)
         .showSnackBar(SnackBar(content: Text(msg)));
+  }
+
+  void _snackCom(Widget icone, String msg) {
+    ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+      content: Row(
+        children: [
+          icone,
+          const SizedBox(width: 10),
+          Expanded(child: Text(msg)),
+        ],
+      ),
+    ));
   }
 
   @override

@@ -150,16 +150,27 @@ class _HomeBody extends StatelessWidget {
   void _gerarExcel(BuildContext context, Recebimento r) async {
     final provider = Provider.of<MainProvider>(context, listen: false);
     ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-        content: Text(
-            "📥 Gerando Excel da viagem ${r.id.length > 7 ? r.id.substring(r.id.length - 7) : r.id}...")));
+        content: Row(children: [
+      Image.asset('assets/drawables/excel.png',
+          width: 20, height: 20, fit: BoxFit.contain,
+          color: Colors.white, colorBlendMode: BlendMode.srcIn),
+      const SizedBox(width: 10),
+      Expanded(
+          child: Text(
+              "Gerando Excel da viagem ${r.id.length > 7 ? r.id.substring(r.id.length - 7) : r.id}...")),
+    ])));
     try {
       final path = await ExcelDownloader.gerarExcel(
         apiService: provider.apiService,
         storeId: provider.storeId,
         viagemId: r.id,
       );
-      ScaffoldMessenger.of(context)
-          .showSnackBar(SnackBar(content: Text("✅ Excel salvo: $path")));
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+          content: Row(children: [
+        const Icon(Icons.check_box, color: Colors.white, size: 20),
+        const SizedBox(width: 10),
+        Expanded(child: Text("Excel salvo: $path")),
+      ])));
     } catch (e) {
       ScaffoldMessenger.of(context)
           .showSnackBar(SnackBar(content: Text("❌ $e")));
