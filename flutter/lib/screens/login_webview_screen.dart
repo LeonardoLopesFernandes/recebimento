@@ -152,16 +152,19 @@ class _LoginWebViewScreenState extends State<LoginWebViewScreen> {
   Future<void> _verificarTokenViaCookies() async {
     if (_tokenEncontrado || _loginConcluido) return;
     try {
-      final cookies = await WebViewCookieManager().getCookies(
-        domain: Uri.parse("https://minhaloja.americanas.io"),
-      );
-      for (final c in cookies) {
-        final name = c.name;
-        if (name == "newToken" || name == "token") {
-          final token = c.value;
-          if (token.isNotEmpty && token.length > 50) {
-            _salvarToken(token);
-            return;
+      final cookies =
+          await _controller.runJavaScriptReturningResult(
+              "(function(){return document.cookie||'';})()");
+      if (cookies is String) {
+        final all = cookies.replaceAll('"', '').trim();
+        for (final name in ['newToken', 'token']) {
+          final m = RegExp('(?:^|;\\s*)$name=([^;]+)').firstMatch(all);
+          if (m != null) {
+            final token = m.group(1)!.trim();
+            if (token.isNotEmpty && token.length > 50) {
+              _salvarToken(token);
+              return;
+            }
           }
         }
       }
