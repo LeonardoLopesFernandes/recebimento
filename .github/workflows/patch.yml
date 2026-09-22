@@ -54,7 +54,7 @@ jobs:
         run: |
           shorebird patch android \
             --release-version=latest \
-            -- --dart-define=MICROSOFT_CLIENT_SECRET=$microsoftClientSecret
+            -- --dart-define=MICROSOFT_CLIENT_SECRET=$microsoftClientSecret --no-tree-shake-icons
 
       - name: Publicar changelog nas notes do Shorebird
         if: success()

@@ -62,7 +62,7 @@ jobs:
             --flutter-version=3.38.5 \
             --build-number=$BUILD_NUMBER \
             --build-name=1.0.0 \
-            -- --dart-define=MICROSOFT_CLIENT_SECRET=$microsoftClientSecret
+            -- --dart-define=MICROSOFT_CLIENT_SECRET=$microsoftClientSecret --no-tree-shake-icons
 
       - name: Publicar changelog nas notes do Shorebird
         if: success()
