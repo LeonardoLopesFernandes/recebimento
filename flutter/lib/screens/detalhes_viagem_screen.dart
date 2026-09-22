@@ -370,7 +370,8 @@ class _DetalhesViagemScreenState extends State<DetalhesViagemScreen> {
           IconButton(
             onPressed: _gerarExcel,
             icon: Image.asset('assets/drawables/excel.png',
-                width: 24, height: 24, fit: BoxFit.contain),
+                width: 24, height: 24, fit: BoxFit.contain,
+                color: Colors.white, colorBlendMode: BlendMode.srcIn),
             tooltip: 'Gerar Excel',
           ),
         ],

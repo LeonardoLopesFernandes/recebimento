@@ -4,6 +4,7 @@ Todas as mudanças notáveis do Recebimento. O topo deste arquivo é publicado
 automaticamente como nota (notes) no release/patch do Shorebird.
 
 ## [Não lançado]
+- Ícone de Excel da toolbar (detalhes da viagem) pintado de branco
 - Ícones de Excel e PDF com assets próprios (excel.png/pdf.png) nos botões
 - Correção do patch OTA: versões de plugins travadas no lock do release base (native changes) + remoção do assets/fonts inexistente
 - Correção do patch OTA: verificação de token por cookie via JavaScript (getCookies removido do webview_flutter)
