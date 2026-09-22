@@ -99,91 +99,88 @@ class _ItensScreenState extends State<ItensScreen> {
         backgroundColor: Colors.white,
         body: Column(
           children: [
-            // Header / toolbar vermelho (full-bleed, conteúdo abaixo da status bar)
+            // Header / toolbar (gradiente, fiel ao HTML de Itens de Risco)
             Container(
-              color: const Color(Constants.primaryRed),
+              decoration: const BoxDecoration(
+                gradient: LinearGradient(
+                  colors: [Color(0xFFB71C1C), Color(0xFFD32F2F)],
+                  begin: Alignment.topLeft,
+                  end: Alignment.bottomRight,
+                ),
+              ),
               padding: EdgeInsets.fromLTRB(
-                  16, MediaQuery.of(context).padding.top, 16, 16),
+                  8, MediaQuery.of(context).padding.top + 8, 16, 16),
               child: Column(
                 children: [
                   Row(
                     children: [
+                      IconButton(
+                        icon: const Icon(Icons.arrow_back,
+                            color: Colors.white),
+                        onPressed: () => Navigator.of(context).pop(),
+                      ),
                       Expanded(
-                        child: Container(
-                          height: 40,
-                          alignment: Alignment.center,
-                          padding: const EdgeInsets.symmetric(horizontal: 8),
-                          decoration: BoxDecoration(
+                        child: Text(
+                          _titulo.toUpperCase(),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: const TextStyle(
                             color: Colors.white,
-                            borderRadius: BorderRadius.circular(6),
+                            fontSize: 14,
+                            fontWeight: FontWeight.w700,
+                            letterSpacing: 0.8,
                           ),
-                          child: Text(_titulo,
-                              maxLines: 1,
-                              overflow: TextOverflow.ellipsis,
-                              style: const TextStyle(
-                                  color: Color(Constants.primaryRed),
-                                  fontSize: 13,
-                                  fontWeight: FontWeight.bold)),
                         ),
                       ),
                       const SizedBox(width: 8),
-                      Expanded(
-                        child: InkWell(
-                          onTap: _gerarExcel,
-                          child: Container(
-                            height: 40,
-                            alignment: Alignment.center,
-                            decoration: BoxDecoration(
-                              color: Colors.white,
-                              borderRadius: BorderRadius.circular(6),
-                            ),
-                            child: Image.asset('assets/drawables/excel.png',
-                                width: 26, height: 26, fit: BoxFit.contain),
-                          ),
-                        ),
+                      _BotaoExport(
+                        asset: 'assets/drawables/excel.png',
+                        label: 'XLS',
+                        onTap: _gerarExcel,
+                      ),
+                      const SizedBox(width: 6),
+                      _BotaoExport(
+                        asset: 'assets/drawables/pdf.png',
+                        label: 'PDF',
+                        onTap: _gerarPdf,
                       ),
                     ],
                   ),
-                  const SizedBox(height: 8),
-                  Row(
-                    children: [
-                      Expanded(
-                        child: Container(
-                          height: 40,
-                          alignment: Alignment.center,
-                          padding: const EdgeInsets.symmetric(horizontal: 8),
-                          decoration: BoxDecoration(
-                            color: const Color(Constants.primaryRed),
-                            borderRadius: BorderRadius.circular(6),
-                            border: Border.all(color: Colors.white),
-                          ),
-                          child: Text(
-                              "Total: ${CurrencyFormatter.formatarMoedaComSimbolo(_soma)}",
-                              maxLines: 1,
-                              overflow: TextOverflow.ellipsis,
-                              style: const TextStyle(
-                                  color: Colors.white,
-                                  fontSize: 14,
-                                  fontWeight: FontWeight.bold)),
-                        ),
-                      ),
-                      const SizedBox(width: 8),
-                      Expanded(
-                        child: InkWell(
-                          onTap: _gerarPdf,
-                          child: Container(
-                            height: 40,
-                            alignment: Alignment.center,
-                            decoration: BoxDecoration(
-                              color: Colors.white,
-                              borderRadius: BorderRadius.circular(6),
-                            ),
-                            child: Image.asset('assets/drawables/pdf.png',
-                                width: 26, height: 26, fit: BoxFit.contain),
+                  const SizedBox(height: 16),
+                  // KPI box "Total"
+                  Container(
+                    width: double.infinity,
+                    padding: const EdgeInsets.all(16),
+                    decoration: BoxDecoration(
+                      color: Colors.white.withOpacity(0.12),
+                      border: Border.all(
+                          color: Colors.white.withOpacity(0.2)),
+                      borderRadius: BorderRadius.circular(14),
+                    ),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          'Total',
+                          style: TextStyle(
+                            color: Colors.white.withOpacity(0.85),
+                            fontSize: 12,
                           ),
                         ),
-                      ),
-                    ],
+                        const SizedBox(height: 4),
+                        Text(
+                          CurrencyFormatter.formatarMoedaComSimbolo(_soma),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: const TextStyle(
+                            color: Colors.white,
+                            fontSize: 26,
+                            fontWeight: FontWeight.w800,
+                            letterSpacing: -0.5,
+                          ),
+                        ),
+                      ],
+                    ),
                   ),
                 ],
               ),
@@ -235,6 +232,48 @@ class _ItensScreenState extends State<ItensScreen> {
           ),
         ],
       ),
+      ),
+    );
+  }
+}
+
+class _BotaoExport extends StatelessWidget {
+  final String asset;
+  final String label;
+  final VoidCallback onTap;
+
+  const _BotaoExport({
+    required this.asset,
+    required this.label,
+    required this.onTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return InkWell(
+      onTap: onTap,
+      borderRadius: BorderRadius.circular(8),
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+        decoration: BoxDecoration(
+          color: Colors.white.withOpacity(0.18),
+          border: Border.all(color: Colors.white.withOpacity(0.3)),
+          borderRadius: BorderRadius.circular(8),
+        ),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Image.asset(asset,
+                width: 18, height: 18, fit: BoxFit.contain),
+            const SizedBox(width: 5),
+            Text(label,
+                style: const TextStyle(
+                  color: Colors.white,
+                  fontSize: 11,
+                  fontWeight: FontWeight.w600,
+                )),
+          ],
+        ),
       ),
     );
   }
