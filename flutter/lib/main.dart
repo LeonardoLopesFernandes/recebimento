@@ -8,6 +8,7 @@ import 'screens/detalhes_viagem_screen.dart';
 import 'screens/itens_screen.dart';
 import 'screens/fotos_recebimento_screen.dart';
 import 'screens/imagens_recebimento_screen.dart';
+import 'screens/profile_screen.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -45,6 +46,7 @@ class MyApp extends StatelessWidget {
         '/itens': (ctx) => const ItensScreen(),
         '/fotos': (ctx) => const FotosRecebimentoScreen(),
         '/imagens': (ctx) => const ImagensRecebimentoScreen(),
+        '/profile': (ctx) => const ProfileScreen(),
       },
     );
   }

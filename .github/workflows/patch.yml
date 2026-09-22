@@ -1,15 +1,13 @@
-name: Build Flutter APK (arm64-v8a)
+name: Shorebird Patch OTA
 
 on:
-  push:
-    tags: [ 'v*' ]
   workflow_dispatch:
 
 permissions:
   contents: write
 
 jobs:
-  build:
+  patch:
     runs-on: ubuntu-latest
     defaults:
       run:
@@ -45,7 +43,7 @@ jobs:
       - name: Flutter pub get
         run: flutter pub get
 
-      - name: Shorebird release (APK arm64, OTA pronto)
+      - name: Shorebird patch (OTA para Android)
         env:
           SHOREBIRD_TOKEN: ${{ secrets.SHOREBIRD_TOKEN }}
           KEYSTORE_PATH: ${{ github.workspace }}/release-key.jks
@@ -53,15 +51,9 @@ jobs:
           KEY_ALIAS: ${{ secrets.KEY_ALIAS }}
           KEY_PASSWORD: ${{ secrets.KEY_PASSWORD }}
           microsoftClientSecret: ${{ secrets.MICROSOFT_CLIENT_SECRET }}
-          BUILD_NUMBER: ${{ github.run_number }}
         run: |
-          shorebird doctor
-          shorebird release android \
-            --artifact=apk \
-            --target-platform android-arm64 \
-            --flutter-version=3.38.5 \
-            --build-number=$BUILD_NUMBER \
-            --build-name=1.0.0 \
+          shorebird patch android \
+            --release-version=latest \
             -- --dart-define=MICROSOFT_CLIENT_SECRET=$microsoftClientSecret
 
       - name: Publicar changelog nas notes do Shorebird
@@ -69,23 +61,3 @@ jobs:
         env:
           SHOREBIRD_TOKEN: ${{ secrets.SHOREBIRD_TOKEN }}
         run: dart run scripts/update_shorebird_notes.dart
-
-      - name: Rename APK
-        run: mv build/app/outputs/flutter-apk/app-release.apk recebimento-arm64-v8a-release.apk
-
-      - name: Cleanup keystore
-        if: always()
-        run: rm -f "${{ github.workspace }}/release-key.jks"
-
-      - name: Create or update release
-        uses: softprops/action-gh-release@v2
-        with:
-          tag_name: ${{ github.ref_type == 'tag' && github.ref_name || 'latest' }}
-          name: Recebimento (${{ github.ref_type == 'tag' && github.ref_name || 'latest' }})
-          body: |
-            Build automático a partir do commit `${{ github.sha }}`.
-            APK Flutter **arm64-v8a** (release), split-per-abi.
-            Instale sobre a versão anterior para atualizar (versionCode crescente).
-          files: flutter/recebimento-arm64-v8a-release.apk
-          overwrite: true
-          make_latest: true

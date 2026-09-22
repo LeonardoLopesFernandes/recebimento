@@ -15,6 +15,7 @@ class SessionManager {
   static const String _keyBrlogProgress = "BRLOG_PROGRESS";
   static const String _keyBrlogNotas = "BRLOG_NOTAS";
   static const String _keyBrlogCodEmpresaUsuario = "BRLOG_COD_EMPRESA_USUARIO";
+  static const String _keyProfilePhoto = "PROFILE_PHOTO";
   static const int _tokenExpiryDays = 14;
 
   final SharedPreferences _prefs;
@@ -127,6 +128,14 @@ class SessionManager {
 
   String? getUserEmail() => _prefs.getString(_keyUserEmail);
   String getUserStore() => _prefs.getString(_keyUserStore) ?? "L291";
+  String? getUserName() => _prefs.getString(_keyUserName);
+
+  void saveProfilePhoto(String path) =>
+      _prefs.setString(_keyProfilePhoto, path);
+
+  String? getProfilePhoto() => _prefs.getString(_keyProfilePhoto);
+
+  void clearProfilePhoto() => _prefs.remove(_keyProfilePhoto);
 
   void saveCredentials(String email, String password) {
     _prefs.setString(_keyUserEmail, email);

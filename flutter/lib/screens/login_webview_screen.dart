@@ -481,20 +481,24 @@ class _CarregamentoWidgetState extends State<_CarregamentoWidget>
       child: Center(
         child: FadeTransition(
           opacity: _pulse.drive(Tween<double>(begin: 1.0, end: 0.2)),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Image.asset(
-                'assets/drawables/ic_caminhao_logo.png',
-                width: 160,
-                height: 160,
-              ),
-              const SizedBox(height: 24),
-              const Text(
-                'Autenticando...',
-                style: TextStyle(color: Colors.white, fontSize: 16),
-              ),
-            ],
+          child: ScaleTransition(
+            scale: _pulse.drive(Tween<double>(begin: 1.0, end: 0.85)),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Image.asset(
+                  'assets/drawables/ic_caminhao_logo.png',
+                  width: 160,
+                  height: 160,
+                  fit: BoxFit.contain,
+                ),
+                const SizedBox(height: 24),
+                const Text(
+                  'Autenticando...',
+                  style: TextStyle(color: Colors.white, fontSize: 16),
+                ),
+              ],
+            ),
           ),
         ),
       ),
