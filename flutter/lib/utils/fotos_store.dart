@@ -110,5 +110,11 @@ class FotosStore {
     pastas.removeWhere((p) => p.viagem == viagem);
     await prefs.setString(_keyPastas,
         jsonEncode(pastas.map((p) => p.toJson()).toList()));
+    // Apaga também as fotos salvas no diretório da viagem.
+    try {
+      final base = await getApplicationDocumentsDirectory();
+      final dir = Directory('${base.path}/fotos/$viagem');
+      if (await dir.exists()) await dir.delete(recursive: true);
+    } catch (_) {}
   }
 }

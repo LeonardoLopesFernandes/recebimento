@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
@@ -37,6 +38,7 @@ Future<void> _mostrarDialogoSaida(BuildContext context) async {
   final sair = await showDialog<bool>(
     context: context,
     builder: (_) => AlertDialog(
+      backgroundColor: Colors.white,
       title: const Text('Sair do aplicativo'),
       content: const Text('Deseja realmente sair do aplicativo?'),
       actions: [
@@ -360,7 +362,30 @@ class _Badge extends StatelessWidget {
   }
 }
 
-class _BuscaFiltros extends StatelessWidget {
+class _BuscaFiltros extends StatefulWidget {
+  @override
+  State<_BuscaFiltros> createState() => _BuscaFiltrosState();
+}
+
+class _BuscaFiltrosState extends State<_BuscaFiltros> {
+  final TextEditingController _ctl = TextEditingController();
+  Timer? _debounce;
+
+  @override
+  void dispose() {
+    _debounce?.cancel();
+    _ctl.dispose();
+    super.dispose();
+  }
+
+  void _onBusca(String valor) {
+    _debounce?.cancel();
+    _debounce = Timer(const Duration(milliseconds: 400), () {
+      if (!mounted) return;
+      Provider.of<MainProvider>(context, listen: false).setSearch(valor);
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
     final provider = Provider.of<MainProvider>(context);
@@ -379,7 +404,8 @@ class _BuscaFiltros extends StatelessWidget {
               const SizedBox(width: 8),
               Expanded(
                 child: TextField(
-                  onChanged: provider.setSearch,
+                  controller: _ctl,
+                  onChanged: _onBusca,
                   decoration: const InputDecoration(
                     hintText: 'Pesquisar Viagem, Placa...',
                     border: InputBorder.none,
@@ -528,7 +554,7 @@ class _AppDrawer extends StatelessWidget {
                   },
                 ),
                 _MenuItem(
-                  const Icon(Icons.folder,
+                  const Icon(Icons.photo_library,
                       color: Color(Constants.primaryRed), size: 24),
                   'Imagens do Recebimento',
                   () {

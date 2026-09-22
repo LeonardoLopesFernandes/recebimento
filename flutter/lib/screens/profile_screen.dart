@@ -39,7 +39,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
     try {
       final session = _session ?? await SessionManager.create();
       final picked = await _picker.pickImage(
-          source: ImageSource.gallery, imageQuality: 90);
+          source: ImageSource.gallery, imageQuality: 70, maxWidth: 1200);
       if (picked == null) return;
       final arquivo = File(picked.path);
       // Copia para diretório permanente do app para persistir após reinicialização
@@ -63,6 +63,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
     showDialog<bool>(
       context: context,
       builder: (ctx) => AlertDialog(
+        backgroundColor: Colors.white,
         title: const Text('Sair da conta'),
         content: const Text('Deseja realmente sair da sua conta?'),
         actions: [
@@ -116,8 +117,13 @@ class _ProfileScreenState extends State<ProfileScreen> {
                   CircleAvatar(
                     radius: 50,
                     backgroundColor: Colors.grey.shade300,
-                    backgroundImage:
-                        _fotoPerfil != null ? FileImage(_fotoPerfil!) : null,
+                    backgroundImage: _fotoPerfil != null
+                        ? ResizeImage(
+                            FileImage(_fotoPerfil!),
+                            width: 200,
+                            height: 200,
+                          )
+                        : null,
                     child: _fotoPerfil == null
                         ? const Icon(Icons.person, size: 50, color: Colors.grey)
                         : null,

@@ -36,6 +36,7 @@ class _ImagensRecebimentoScreenState
     showDialog(
       context: context,
       builder: (_) => AlertDialog(
+        backgroundColor: Colors.white,
         title: const Text('Nova Pasta'),
         content: Column(
           mainAxisSize: MainAxisSize.min,
@@ -87,6 +88,7 @@ class _ImagensRecebimentoScreenState
               final novo = await showDialog<String>(
                 context: context,
                 builder: (_) => AlertDialog(
+                  backgroundColor: Colors.white,
                   title: const Text('Renomear'),
                   content: TextField(controller: ctl),
                   actions: [

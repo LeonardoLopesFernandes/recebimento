@@ -65,6 +65,7 @@ class _LoginScreenState extends State<LoginScreen> {
     showDialog(
       context: context,
       builder: (ctx) => AlertDialog(
+        backgroundColor: Colors.white,
         title: const Text('Entrar com Token'),
         content: TextField(
           controller: tokenController,

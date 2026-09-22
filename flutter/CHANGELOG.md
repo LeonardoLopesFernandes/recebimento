@@ -4,6 +4,13 @@ Todas as mudanças notáveis do Recebimento. O topo deste arquivo é publicado
 automaticamente como nota (notes) no release/patch do Shorebird.
 
 ## [Não lançado]
+- Correção do travamento ao escolher foto no perfil (decodificação redimensionada)
+- Botões de Excel/PDF com ícones no lugar dos textos (itens e detalhes)
+- Ícone "Imagens do Recebimento" atualizado (galeria)
+- Excluir pasta de imagens agora apaga também as fotos salvas
+- Diálogos com fundo branco
+- Busca das Recebidas com debounce e filtro por placa/número/origem
+- Campo de busca da viagem com ícone de lupa e hint à esquerda
 - Ícones com fundo transparente (logo do caminhão no login/carregamento e menu lateral)
 - Tela de perfil aberta pela engrenagem (foto persistente, nome, e-mail, loja, sair da conta)
 - Tela de carregando credenciais com ícone pulsando (escala + fade), igual ao Papeleta63

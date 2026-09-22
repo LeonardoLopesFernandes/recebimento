@@ -367,11 +367,10 @@ class _DetalhesViagemScreenState extends State<DetalhesViagemScreen> {
             style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
         centerTitle: true,
         actions: [
-          TextButton.icon(
+          IconButton(
             onPressed: _gerarExcel,
-            icon: const Icon(Icons.download, color: Colors.white),
-            label: const Text('EXCEL',
-                style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+            icon: const Icon(Icons.table_chart, color: Colors.white, size: 24),
+            tooltip: 'Gerar Excel',
           ),
         ],
       ),
@@ -433,14 +432,25 @@ class _DetalhesViagemScreenState extends State<DetalhesViagemScreen> {
                               borderRadius: BorderRadius.circular(8),
                               border: Border.all(color: Color(0xFFE2E8F0)),
                             ),
-                            child: TextField(
-                              onSubmitted: _executarBuscaGeral,
-                              decoration: const InputDecoration(
-                                hintText: 'Buscar SAP ou item',
-                                border: InputBorder.none,
-                                hintStyle:
-                                    TextStyle(fontSize: 12, color: Color(0xFFA0AEC0)),
-                              ),
+                            child: Row(
+                              children: [
+                                const Icon(Icons.search,
+                                    size: 18, color: Color(0xFFA0AEC0)),
+                                const SizedBox(width: 8),
+                                Expanded(
+                                  child: TextField(
+                                    onSubmitted: _executarBuscaGeral,
+                                    decoration: const InputDecoration(
+                                      hintText: 'Buscar SAP ou item',
+                                      border: InputBorder.none,
+                                      isCollapsed: true,
+                                      hintStyle: TextStyle(
+                                          fontSize: 12,
+                                          color: Color(0xFFA0AEC0)),
+                                    ),
+                                  ),
+                                ),
+                              ],
                             ),
                           ),
                         ),

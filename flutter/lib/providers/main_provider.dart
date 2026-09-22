@@ -35,6 +35,9 @@ class MainProvider extends ChangeNotifier {
 
   final List<Recebimento> _allItems = [];
 
+  /// Cache da lista completa de Recebidas (para busca local por placa).
+  List<Recebimento>? _recebidasCache;
+
   MainProvider(this.sessionManager) {
     apiClient = ApiClient(sessionManager);
     apiService = ApiService(apiClient);
@@ -132,10 +135,20 @@ class MainProvider extends ChangeNotifier {
       currentPage = 1;
       items = [];
       isLastPage = false;
+      _recebidasCache = null;
     }
     notifyListeners();
 
     final search = searchQuery.isNotEmpty ? searchQuery : null;
+
+    // Na aba Recebidas, busca local (placa/número/origem) sobre a lista
+    // completa — a API só filtra por número de viagem e não por placa.
+    if (currentStatus == Constants.statusRecebido &&
+        search != null &&
+        search.isNotEmpty) {
+      await _buscarRecebidasLocais(search);
+      return;
+    }
     final page = reset ? 1 : currentPage + 1;
 
     try {
@@ -184,6 +197,47 @@ class MainProvider extends ChangeNotifier {
       return "${_allItems.length} de $totalItems viagens";
     }
     return "${_allItems.length} viagens";
+  }
+
+  Future<void> _buscarRecebidasLocais(String termo) async {
+    try {
+      _recebidasCache ??= await _carregarTodasRecebidas();
+      final q = termo.toLowerCase();
+      items = _recebidasCache!
+          .where((r) =>
+              r.id.toLowerCase().contains(q) ||
+              (r.placaVeiculo?.toLowerCase().contains(q) ?? false) ||
+              r.origem.toLowerCase().contains(q) ||
+              r.codigoOrigem.toLowerCase().contains(q))
+          .toList();
+      totalItems = items.length;
+      isLoading = false;
+      isRefreshing = false;
+      notifyListeners();
+    } catch (e) {
+      isLoading = false;
+      isRefreshing = false;
+      LogHelper.e("_buscarRecebidasLocais: Erro", e);
+      notifyListeners();
+    }
+  }
+
+  Future<List<Recebimento>> _carregarTodasRecebidas() async {
+    final out = <Recebimento>[];
+    var page = 1;
+    while (true) {
+      final r = await apiService.getRecebimentos(
+        storeId: storeId,
+        status: Constants.statusRecebido,
+        sort: currentSort,
+        page: page,
+      );
+      out.addAll(r.recebimentos);
+      if (page >= r.totalPages) break;
+      page++;
+      if (page > 200) break;
+    }
+    return out;
   }
 
   /// Gera protocolo (receber viagem). Retorna o protocolo gerado ou lança.
