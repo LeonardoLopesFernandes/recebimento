@@ -4,6 +4,7 @@ Todas as mudanças notáveis do Recebimento. O topo deste arquivo é publicado
 automaticamente como nota (notes) no release/patch do Shorebird.
 
 ## [Não lançado]
+- Correção do patch OTA: versões de plugins travadas no lock do release base (native changes) + remoção do assets/fonts inexistente
 - Correção do patch OTA: verificação de token por cookie via JavaScript (getCookies removido do webview_flutter)
 - Correção do travamento ao escolher foto no perfil (decodificação redimensionada)
 - Botões de Excel/PDF com ícones no lugar dos textos (itens e detalhes)

@@ -59,7 +59,6 @@ flutter:
 
   assets:
     - assets/drawables/
-    - assets/fonts/
     - shorebird.yaml
 
   # Mantém os PNGs originais como ícones do app (igual ao nativo)
