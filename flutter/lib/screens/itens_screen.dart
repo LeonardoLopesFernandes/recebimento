@@ -131,16 +131,11 @@ class _ItensScreenState extends State<ItensScreen> {
                 ),
               ),
               padding: EdgeInsets.fromLTRB(
-                  8, MediaQuery.of(context).padding.top + 8, 16, 16),
+                  16, MediaQuery.of(context).padding.top + 4, 16, 10),
               child: Column(
                 children: [
                   Row(
                     children: [
-                      IconButton(
-                        icon: const Icon(Icons.arrow_back,
-                            color: Colors.white),
-                        onPressed: () => Navigator.of(context).pop(),
-                      ),
                       Expanded(
                         child: Text(
                           _titulo.toUpperCase(),
@@ -168,16 +163,17 @@ class _ItensScreenState extends State<ItensScreen> {
                       ),
                     ],
                   ),
-                  const SizedBox(height: 16),
+                  const SizedBox(height: 8),
                   // KPI box "Total"
                   Container(
                     width: double.infinity,
-                    padding: const EdgeInsets.all(16),
+                    padding: const EdgeInsets.symmetric(
+                        horizontal: 12, vertical: 8),
                     decoration: BoxDecoration(
                       color: Colors.white.withOpacity(0.12),
                       border: Border.all(
                           color: Colors.white.withOpacity(0.2)),
-                      borderRadius: BorderRadius.circular(14),
+                      borderRadius: BorderRadius.circular(12),
                     ),
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
@@ -186,17 +182,17 @@ class _ItensScreenState extends State<ItensScreen> {
                           'Total',
                           style: TextStyle(
                             color: Colors.white.withOpacity(0.85),
-                            fontSize: 12,
+                            fontSize: 11,
                           ),
                         ),
-                        const SizedBox(height: 4),
+                        const SizedBox(height: 2),
                         Text(
                           CurrencyFormatter.formatarMoedaComSimbolo(_soma),
                           maxLines: 1,
                           overflow: TextOverflow.ellipsis,
                           style: const TextStyle(
                             color: Colors.white,
-                            fontSize: 26,
+                            fontSize: 18,
                             fontWeight: FontWeight.w800,
                             letterSpacing: -0.5,
                           ),
@@ -286,7 +282,8 @@ class _BotaoExport extends StatelessWidget {
           mainAxisSize: MainAxisSize.min,
           children: [
             Image.asset(asset,
-                width: 18, height: 18, fit: BoxFit.contain),
+                width: 18, height: 18, fit: BoxFit.contain,
+                color: Colors.white, colorBlendMode: BlendMode.srcIn),
             const SizedBox(width: 5),
             Text(label,
                 style: const TextStyle(

@@ -5,7 +5,7 @@ automaticamente como nota (notes) no release/patch do Shorebird.
 
 ## [Não lançado]
 - SnackBars de geração/salvamento de Excel/PDF com ícones (arquivo branco + checkbox)
-- Novo header nas telas de itens (gradiente, botões XLS/PDF, card de Total) — Itens de Risco, Busca Geral, Ver Tudo e guias
+- Header de itens mais compacto (sem seta de voltar, ícones XLS/PDF brancos)
 - Ícone de Excel da toolbar (detalhes da viagem) pintado de branco
 - Ícones de Excel e PDF com assets próprios (excel.png/pdf.png) nos botões
 - Correção do patch OTA: versões de plugins travadas no lock do release base (native changes) + remoção do assets/fonts inexistente
