@@ -369,7 +369,8 @@ class _DetalhesViagemScreenState extends State<DetalhesViagemScreen> {
         actions: [
           IconButton(
             onPressed: _gerarExcel,
-            icon: const Icon(Icons.table_chart, color: Colors.white, size: 24),
+            icon: Image.asset('assets/drawables/excel.png',
+                width: 24, height: 24, fit: BoxFit.contain),
             tooltip: 'Gerar Excel',
           ),
         ],
