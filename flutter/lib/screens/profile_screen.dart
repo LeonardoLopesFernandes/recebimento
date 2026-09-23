@@ -2,6 +2,7 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:path_provider/path_provider.dart';
+import 'package:webview_flutter/webview_flutter.dart';
 import '../network/session_manager.dart';
 import '../screens/login_screen.dart';
 import '../utils/constants.dart';
@@ -78,6 +79,11 @@ class _ProfileScreenState extends State<ProfileScreen> {
     ).then((confirmado) async {
       if (confirmado == true) {
         final session = _session ?? await SessionManager.create();
+        // Limpa a sessão do Microsoft/minhaloja na WebView para o próximo
+        // login autenticar a conta escolhida (e não a anterior).
+        try {
+          await WebViewCookieManager().clearCookies();
+        } catch (_) {}
         session.clearAll();
         if (mounted) {
           Navigator.pushAndRemoveUntil(

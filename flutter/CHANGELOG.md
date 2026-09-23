@@ -6,6 +6,7 @@ automaticamente como nota (notes) no release/patch do Shorebird.
 ## [Não lançado]
 - SnackBars de geração/salvamento de Excel/PDF com ícones (arquivo branco + checkbox)
 - Header de itens mais compacto (sem seta de voltar, ícones XLS/PDF brancos)
+- Logout limpa cookies da WebView (trocar de conta autentica a conta correta)
 - Ícone de Excel da toolbar (detalhes da viagem) pintado de branco
 - Ícones de Excel e PDF com assets próprios (excel.png/pdf.png) nos botões
 - Correção do patch OTA: versões de plugins travadas no lock do release base (native changes) + remoção do assets/fonts inexistente
