@@ -256,6 +256,136 @@ class _DetalhesViagemScreenState extends State<DetalhesViagemScreen> {
         arguments: {'titulo': 'ITENS DE RISCO', 'itens': risco});
   }
 
+  List<RecebimentoItem> _todosItens() {
+    final d = _detalhes;
+    final todos = <RecebimentoItem>[];
+    if (d == null) return todos;
+    for (final g in d.guias) {
+      for (final n in g.recebimentoNota) {
+        for (final i in n.recebimentoItem) {
+          todos.add(i.copyWith(guiaOuRoll: "GUIA: ${g.num}"));
+        }
+      }
+    }
+    for (final r in d.rolls) {
+      final ref = r.numGuia.isNotEmpty ? r.numGuia : r.num;
+      for (final n in r.recebimentoNota) {
+        for (final i in n.recebimentoItem) {
+          todos.add(i.copyWith(guiaOuRoll: "GUIA: $ref"));
+        }
+      }
+    }
+    return todos;
+  }
+
+  void _imprimirPorDepartamento() async {
+    final todos = _todosItens();
+    if (todos.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text("Nenhum item para imprimir.")));
+      return;
+    }
+    final deptos = <String, int>{};
+    for (final i in todos) {
+      final dep = i.departamento.trim();
+      if (dep.isEmpty) continue;
+      deptos[dep] = (deptos[dep] ?? 0) + 1;
+    }
+    if (deptos.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text("Nenhum departamento encontrado.")));
+      return;
+    }
+    final ordenados = deptos.keys.toList()..sort();
+    String? selecionado;
+    final escolha = await showDialog<String>(
+      context: context,
+      builder: (ctx) => StatefulBuilder(
+        builder: (ctx, set) => AlertDialog(
+          shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(16)),
+          title: const Text('Imprimir por departamento',
+              style: TextStyle(fontSize: 17, fontWeight: FontWeight.bold)),
+          content: SizedBox(
+            width: double.maxFinite,
+            child: SingleChildScrollView(
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  RadioListTile<String>(
+                    title: Text('Todos (${todos.length})',
+                        style: const TextStyle(fontSize: 14)),
+                    value: '__TODOS__',
+                    groupValue: selecionado,
+                    activeColor: const Color(Constants.primaryRed),
+                    onChanged: (v) => set(() => selecionado = v),
+                  ),
+                  const Divider(height: 8),
+                  ...ordenados.map((dep) => RadioListTile<String>(
+                        title: Text('$dep (${deptos[dep]})',
+                            style: const TextStyle(fontSize: 14)),
+                        value: dep,
+                        groupValue: selecionado,
+                        activeColor: const Color(Constants.primaryRed),
+                        onChanged: (v) => set(() => selecionado = v),
+                      )),
+                ],
+              ),
+            ),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(ctx).pop(),
+              child: const Text('CANCELAR',
+                  style: TextStyle(color: Colors.grey)),
+            ),
+            ElevatedButton(
+              style: ElevatedButton.styleFrom(
+                backgroundColor: const Color(Constants.primaryRed),
+                foregroundColor: Colors.white,
+              ),
+              onPressed: selecionado == null
+                  ? null
+                  : () => Navigator.of(ctx).pop(selecionado),
+              child: const Text('IMPRIMIR'),
+            ),
+          ],
+        ),
+      ),
+    );
+    if (escolha == null) return;
+    final filtrados = escolha == '__TODOS__'
+        ? todos
+        : todos.where((i) => i.departamento.trim() == escolha).toList();
+    final sufixo = escolha == '__TODOS__' ? '' : ' - $escolha';
+    ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
+        content: Row(children: [
+      Icon(Icons.print, color: Colors.white, size: 20),
+      SizedBox(width: 10),
+      Expanded(child: Text('Gerando PDF...')),
+    ])));
+    try {
+      final total = filtrados.fold(0.0, (s, i) => s + i.preco);
+      final path = await ExcelDownloader.gerarPdfItens(
+        titulo: 'VIAGEM $_viagemId$sufixo',
+        prefixo: 'viagem-dep',
+        itens: filtrados,
+        total: total,
+      );
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+          content: Row(children: [
+        const Icon(Icons.check_box, color: Colors.white, size: 20),
+        const SizedBox(width: 10),
+        Expanded(child: Text("PDF salvo: $path")),
+      ])));
+    } catch (e) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context)
+          .showSnackBar(SnackBar(content: Text("❌ $e")));
+    }
+  }
+
   void _gerarExcel() async {
     if (_detalhes == null) return;
     ScaffoldMessenger.of(context).showSnackBar(SnackBar(
@@ -383,6 +513,11 @@ class _DetalhesViagemScreenState extends State<DetalhesViagemScreen> {
                 width: 24, height: 24, fit: BoxFit.contain,
                 color: Colors.white, colorBlendMode: BlendMode.srcIn),
             tooltip: 'Gerar Excel',
+          ),
+          IconButton(
+            onPressed: _imprimirPorDepartamento,
+            icon: const Icon(Icons.print, color: Colors.white, size: 24),
+            tooltip: 'Imprimir por departamento',
           ),
         ],
       ),

@@ -92,100 +92,6 @@ class _ItensScreenState extends State<ItensScreen> {
     }
   }
 
-  void _imprimirPorDepartamento() async {
-    if (_todos.isEmpty) {
-      _snack("Nenhum item para imprimir.");
-      return;
-    }
-    final deptos = <String, int>{};
-    for (final i in _todos) {
-      final d = i.departamento.trim();
-      if (d.isEmpty) continue;
-      deptos[d] = (deptos[d] ?? 0) + 1;
-    }
-    if (deptos.isEmpty) {
-      _snack("Nenhum departamento encontrado.");
-      return;
-    }
-    final ordenados = deptos.keys.toList()..sort();
-    String? selecionado;
-    final escolha = await showDialog<String>(
-      context: context,
-      builder: (ctx) => StatefulBuilder(
-        builder: (ctx, set) => AlertDialog(
-          shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(16)),
-          title: const Text('Imprimir por departamento',
-              style:
-                  TextStyle(fontSize: 17, fontWeight: FontWeight.bold)),
-          content: SizedBox(
-            width: double.maxFinite,
-            child: SingleChildScrollView(
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  RadioListTile<String>(
-                    title: Text('Todos (${_todos.length})',
-                        style: const TextStyle(fontSize: 14)),
-                    value: '__TODOS__',
-                    groupValue: selecionado,
-                    activeColor: const Color(0xFFB71C1C),
-                    onChanged: (v) => set(() => selecionado = v),
-                  ),
-                  const Divider(height: 8),
-                  ...ordenados.map((d) => RadioListTile<String>(
-                        title: Text('$d (${deptos[d]})',
-                            style: const TextStyle(fontSize: 14)),
-                        value: d,
-                        groupValue: selecionado,
-                        activeColor: const Color(0xFFB71C1C),
-                        onChanged: (v) => set(() => selecionado = v),
-                      )),
-                ],
-              ),
-            ),
-          ),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.of(ctx).pop(),
-              child: const Text('CANCELAR',
-                  style: TextStyle(color: Colors.grey)),
-            ),
-            ElevatedButton(
-              style: ElevatedButton.styleFrom(
-                backgroundColor: const Color(0xFFB71C1C),
-                foregroundColor: Colors.white,
-              ),
-              onPressed: selecionado == null
-                  ? null
-                  : () => Navigator.of(ctx).pop(selecionado),
-              child: const Text('IMPRIMIR'),
-            ),
-          ],
-        ),
-      ),
-    );
-    if (escolha == null) return;
-    final filtrados = escolha == '__TODOS__'
-        ? _todos
-        : _todos.where((i) => i.departamento.trim() == escolha).toList();
-    final sufixo = escolha == '__TODOS__' ? '' : ' - $escolha';
-    _snackCom(const Icon(Icons.print, color: Colors.white, size: 20),
-        'Gerando PDF...');
-    try {
-      final path = await ExcelDownloader.gerarPdfItens(
-        titulo: '$_titulo$sufixo',
-        prefixo: 'itens',
-        itens: filtrados,
-        total: filtrados.fold(0.0, (s, i) => s + i.preco),
-      );
-      _snackCom(const Icon(Icons.check_box, color: Colors.white, size: 20),
-          'PDF salvo: $path');
-    } catch (e) {
-      _snack("❌ $e");
-    }
-  }
-
   void _snack(String msg) {
     ScaffoldMessenger.of(context)
         .showSnackBar(SnackBar(content: Text(msg)));
@@ -254,12 +160,6 @@ class _ItensScreenState extends State<ItensScreen> {
                         asset: 'assets/drawables/pdf.png',
                         label: 'PDF',
                         onTap: _gerarPdf,
-                      ),
-                      const SizedBox(width: 6),
-                      _BotaoExport(
-                        icon: Icons.print,
-                        label: 'DEP',
-                        onTap: _imprimirPorDepartamento,
                       ),
                     ],
                   ),
@@ -356,14 +256,12 @@ class _ItensScreenState extends State<ItensScreen> {
 }
 
 class _BotaoExport extends StatelessWidget {
-  final String? asset;
-  final IconData? icon;
+  final String asset;
   final String label;
   final VoidCallback onTap;
 
   const _BotaoExport({
-    this.asset,
-    this.icon,
+    required this.asset,
     required this.label,
     required this.onTap,
   });
@@ -383,12 +281,9 @@ class _BotaoExport extends StatelessWidget {
         child: Row(
           mainAxisSize: MainAxisSize.min,
           children: [
-            if (asset != null)
-              Image.asset(asset!,
-                  width: 18, height: 18, fit: BoxFit.contain,
-                  color: Colors.white, colorBlendMode: BlendMode.srcIn)
-            else
-              Icon(icon ?? Icons.print, size: 18, color: Colors.white),
+            Image.asset(asset,
+                width: 18, height: 18, fit: BoxFit.contain,
+                color: Colors.white, colorBlendMode: BlendMode.srcIn),
             const SizedBox(width: 5),
             Text(label,
                 style: const TextStyle(
