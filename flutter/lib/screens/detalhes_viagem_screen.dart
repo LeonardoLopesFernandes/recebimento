@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
+import 'package:url_launcher/url_launcher.dart';
 import '../models/recebimento.dart';
 import '../models/brasil_risk.dart';
 import '../network/session_manager.dart';
@@ -297,11 +298,14 @@ class _DetalhesViagemScreenState extends State<DetalhesViagemScreen> {
       return;
     }
     final ordenados = deptos.keys.toList()..sort();
-    String? selecionado;
-    final escolha = await showDialog<String>(
+    final selecionados = <String>{};
+    final escolha = await showDialog<Set<String>>(
       context: context,
       builder: (ctx) => StatefulBuilder(
         builder: (ctx, set) => AlertDialog(
+          backgroundColor: Colors.white,
+          insetPadding:
+              const EdgeInsets.symmetric(horizontal: 8, vertical: 24),
           shape: RoundedRectangleBorder(
               borderRadius: BorderRadius.circular(16)),
           title: const Text('Imprimir por departamento',
@@ -312,22 +316,37 @@ class _DetalhesViagemScreenState extends State<DetalhesViagemScreen> {
               child: Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  RadioListTile<String>(
+                  CheckboxListTile(
                     title: Text('Todos (${todos.length})',
-                        style: const TextStyle(fontSize: 14)),
-                    value: '__TODOS__',
-                    groupValue: selecionado,
+                        style: const TextStyle(
+                            fontSize: 14, fontWeight: FontWeight.bold)),
+                    value: selecionados.length == ordenados.length,
                     activeColor: const Color(Constants.primaryRed),
-                    onChanged: (v) => set(() => selecionado = v),
+                    controlAffinity: ListTileControlAffinity.leading,
+                    onChanged: (v) => set(() {
+                      if (v == true) {
+                        selecionados.addAll(ordenados);
+                      } else {
+                        selecionados.clear();
+                      }
+                    }),
                   ),
                   const Divider(height: 8),
-                  ...ordenados.map((dep) => RadioListTile<String>(
+                  ...ordenados.map((dep) => CheckboxListTile(
                         title: Text('$dep (${deptos[dep]})',
                             style: const TextStyle(fontSize: 14)),
-                        value: dep,
-                        groupValue: selecionado,
-                        activeColor: const Color(Constants.primaryRed),
-                        onChanged: (v) => set(() => selecionado = v),
+                        value: selecionados.contains(dep),
+                        activeColor:
+                            const Color(Constants.primaryRed),
+                        controlAffinity:
+                            ListTileControlAffinity.leading,
+                        onChanged: (v) => set(() {
+                          if (v == true) {
+                            selecionados.add(dep);
+                          } else {
+                            selecionados.remove(dep);
+                          }
+                        }),
                       )),
                 ],
               ),
@@ -344,20 +363,25 @@ class _DetalhesViagemScreenState extends State<DetalhesViagemScreen> {
                 backgroundColor: const Color(Constants.primaryRed),
                 foregroundColor: Colors.white,
               ),
-              onPressed: selecionado == null
+              onPressed: selecionados.isEmpty
                   ? null
-                  : () => Navigator.of(ctx).pop(selecionado),
-              child: const Text('IMPRIMIR'),
+                  : () => Navigator.of(ctx)
+                      .pop(Set<String>.from(selecionados)),
+              child: Text('IMPRIMIR (${selecionados.length})'),
             ),
           ],
         ),
       ),
     );
-    if (escolha == null) return;
-    final filtrados = escolha == '__TODOS__'
-        ? todos
-        : todos.where((i) => i.departamento.trim() == escolha).toList();
-    final sufixo = escolha == '__TODOS__' ? '' : ' - $escolha';
+    if (escolha == null || escolha.isEmpty) return;
+    final filtrados = todos
+        .where((i) => escolha.contains(i.departamento.trim()))
+        .toList();
+    final sufixo = escolha.length == 1
+        ? ' - ${escolha.first}'
+        : (escolha.length == ordenados.length
+            ? ''
+            : ' - ${escolha.length} deps');
     ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
         content: Row(children: [
       Icon(Icons.print, color: Colors.white, size: 20),
@@ -373,16 +397,26 @@ class _DetalhesViagemScreenState extends State<DetalhesViagemScreen> {
         total: total,
       );
       if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-          content: Row(children: [
-        const Icon(Icons.check_box, color: Colors.white, size: 20),
-        const SizedBox(width: 10),
-        Expanded(child: Text("PDF salvo: $path")),
-      ])));
+      await _abrirPreviewPdf(path);
     } catch (e) {
       if (!mounted) return;
       ScaffoldMessenger.of(context)
           .showSnackBar(SnackBar(content: Text("❌ $e")));
+    }
+  }
+
+  /// Abre o PDF no visualizador nativo (chooser quando houver mais de um).
+  Future<void> _abrirPreviewPdf(String pdf) async {
+    try {
+      final uri =
+          pdf.startsWith('content://') ? Uri.parse(pdf) : Uri.file(pdf);
+      final ok =
+          await launchUrl(uri, mode: LaunchMode.externalApplication);
+      if (!ok) throw Exception('sem app');
+    } catch (_) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('PDF salvo: $pdf')));
     }
   }
 
