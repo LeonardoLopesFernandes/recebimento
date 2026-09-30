@@ -35,6 +35,21 @@ class _FotosRecebimentoScreenState extends State<FotosRecebimentoScreen> {
     if (mounted) setState(() {});
   }
 
+  bool _emLista = false;
+
+  String _tamanho(String path) {
+    try {
+      final b = File(path).lengthSync();
+      if (b < 1024) return '$b B';
+      if (b < 1024 * 1024) {
+        return '${(b / 1024).toStringAsFixed(1).replaceAll('.', ',')} KB';
+      }
+      return '${(b / (1024 * 1024)).toStringAsFixed(1).replaceAll('.', ',')} MB';
+    } catch (_) {
+      return '';
+    }
+  }
+
   Future<void> _daGaleria() async {
     final imgs = await _picker.pickMultiImage();
     final antes = _fotos.toSet();
@@ -243,6 +258,13 @@ class _FotosRecebimentoScreenState extends State<FotosRecebimentoScreen> {
         ),
         actions: [
           IconButton(
+            icon: Icon(
+                _emLista ? Icons.grid_view : Icons.view_list,
+                color: Colors.white),
+            tooltip: _emLista ? 'Ver em grade' : 'Ver em lista',
+            onPressed: () => setState(() => _emLista = !_emLista),
+          ),
+          IconButton(
             icon: const Icon(Icons.cloud_upload_outlined,
                 color: Colors.white),
             tooltip: 'Backup OneDrive',
@@ -261,7 +283,47 @@ class _FotosRecebimentoScreenState extends State<FotosRecebimentoScreen> {
       ),
       body: _fotos.isEmpty
           ? const Center(child: Text('Nenhuma foto nesta viagem'))
-          : GridView.builder(
+          : _emLista
+              ? ListView.builder(
+                  padding:
+                      const EdgeInsets.symmetric(vertical: 8),
+                  itemCount: _fotos.length,
+                  itemBuilder: (ctx, i) {
+                    final path = _fotos[i];
+                    final nome = path.split('/').last;
+                    return Card(
+                      margin: const EdgeInsets.symmetric(
+                          horizontal: 12, vertical: 4),
+                      child: ListTile(
+                        leading: ClipRRect(
+                          borderRadius: BorderRadius.circular(6),
+                          child: Image.file(File(path),
+                              width: 56,
+                              height: 56,
+                              fit: BoxFit.cover),
+                        ),
+                        title: Text(
+                          nome,
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: const TextStyle(
+                              fontSize: 14,
+                              fontWeight: FontWeight.w600),
+                        ),
+                        subtitle: Text(
+                          _tamanho(path),
+                          style: const TextStyle(
+                              fontSize: 12, color: Colors.grey),
+                        ),
+                        trailing: const Icon(Icons.chevron_right,
+                            color: Colors.grey),
+                        onTap: () => _verFoto(path),
+                        onLongPress: () => _opcoesFoto(path),
+                      ),
+                    );
+                  },
+                )
+              : GridView.builder(
               padding: const EdgeInsets.all(8),
               gridDelegate:
                   const SliverGridDelegateWithFixedCrossAxisCount(
