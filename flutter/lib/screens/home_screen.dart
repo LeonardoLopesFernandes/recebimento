@@ -554,10 +554,9 @@ class _AppDrawer extends StatelessWidget {
               padding: const EdgeInsets.all(8),
               children: [
                 _MenuItem(
-                  Image.asset('assets/drawables/ic_caminhao_logo.png',
-                      width: 24, height: 24,
-                      color: const Color(Constants.primaryRed)),
-                  'Sincronizar % das Viagens (BRLog)',
+                  const Icon(Icons.sync,
+                      color: Color(Constants.primaryRed), size: 24),
+                  'Sincronizar viagens do BRLog',
                   () {
                     Navigator.of(context).pop();
                     Navigator.of(context).pushNamed('/login_webview',

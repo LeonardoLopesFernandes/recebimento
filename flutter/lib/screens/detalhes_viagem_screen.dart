@@ -386,8 +386,9 @@ class _DetalhesViagemScreenState extends State<DetalhesViagemScreen> {
       for (final d in ordenados)
         if (porDep.containsKey(d)) ...porDep[d]!
     ];
+    final numViagem = _viagemId.replaceFirst(RegExp(r'^0+'), '');
     final sufixo = escolha.length == 1
-        ? ' - ${escolha.first}'
+        ? ' - DEP: ${escolha.first}'
         : (escolha.length == ordenados.length
             ? ''
             : ' - ${escolha.length} deps');
@@ -400,10 +401,11 @@ class _DetalhesViagemScreenState extends State<DetalhesViagemScreen> {
     try {
       final total = filtrados.fold(0.0, (s, i) => s + i.preco);
       final path = await ExcelDownloader.gerarPdfItens(
-        titulo: 'VIAGEM $_viagemId$sufixo',
+        titulo: 'VIAGEM: $numViagem$sufixo',
         prefixo: 'viagem-dep',
         itens: filtrados,
         total: total,
+        mostrarTotal: false,
       );
       if (!mounted) return;
       await _abrirPreviewPdf(path);

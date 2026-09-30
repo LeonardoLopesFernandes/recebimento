@@ -63,6 +63,7 @@ class ExcelDownloader {
     required String prefixo,
     required List<RecebimentoItem> itens,
     required double total,
+    bool mostrarTotal = true,
   }) async {
     final doc = pw.Document();
     final headers = ['#', 'DEP', 'SAP', 'DESCRIÇÃO', 'QTD', 'CONFERÊNCIA'];
@@ -76,12 +77,14 @@ class ExcelDownloader {
                 style: pw.TextStyle(
                     fontSize: 16, fontWeight: pw.FontWeight.bold)),
           ),
-          pw.Paragraph(
-            text: "Total: ${CurrencyFormatter.formatarMoedaComSimbolo(total)}",
-            style: pw.TextStyle(
-                fontSize: 12, fontWeight: pw.FontWeight.bold),
-          ),
-          pw.SizedBox(height: 8),
+          if (mostrarTotal)
+            pw.Paragraph(
+              text:
+                  "Total: ${CurrencyFormatter.formatarMoedaComSimbolo(total)}",
+              style: pw.TextStyle(
+                  fontSize: 12, fontWeight: pw.FontWeight.bold),
+            ),
+          if (mostrarTotal) pw.SizedBox(height: 8),
           pw.Table.fromTextArray(
             context: context,
             headers: headers,

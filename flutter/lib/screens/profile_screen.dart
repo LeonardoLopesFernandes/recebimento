@@ -145,36 +145,64 @@ class _ProfileScreenState extends State<ProfileScreen> {
             Card(
               shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
               child: Padding(
-                padding: const EdgeInsets.all(16),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    const Text('Informações da Conta',
-                        style: TextStyle(
-                            fontWeight: FontWeight.bold,
-                            fontSize: 16,
-                            color: brandRed)),
-                    const SizedBox(height: 12),
-                    FutureBuilder<SessionManager>(
-                      future: SessionManager.create(),
-                      builder: (context, snapshot) {
-                        final session = snapshot.data;
-                        final nome = session?.getUserName() ?? 'Usuário';
-                        final email = session?.getUserEmail() ?? 'Não informado';
-                        final loja = session?.getUserStore() ?? 'L291';
-                        return Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
+                padding: const EdgeInsets.fromLTRB(24, 24, 24, 20),
+                child: FutureBuilder<SessionManager>(
+                  future: SessionManager.create(),
+                  builder: (context, snapshot) {
+                    final session = snapshot.data;
+                    final nome = session?.getUserName() ?? 'Usuário';
+                    final email = session?.getUserEmail() ?? 'Não informado';
+                    final loja = session?.getUserStore() ?? 'L291';
+                    return Column(
+                      children: [
+                        Text(
+                          nome,
+                          textAlign: TextAlign.center,
+                          style: const TextStyle(
+                            fontSize: 20,
+                            fontWeight: FontWeight.w700,
+                            color: brandRed,
+                            height: 1.4,
+                          ),
+                        ),
+                        const SizedBox(height: 20),
+                        Row(
                           children: [
-                            Text('Nome: $nome', style: const TextStyle(fontSize: 14)),
-                            const SizedBox(height: 6),
-                            Text('E-mail: $email', style: const TextStyle(fontSize: 14)),
-                            const SizedBox(height: 6),
-                            Text('Loja: $loja', style: const TextStyle(fontSize: 14)),
+                            const Icon(Icons.email_outlined,
+                                color: brandRed, size: 20),
+                            const SizedBox(width: 14),
+                            Expanded(
+                              child: Text(
+                                email,
+                                style: const TextStyle(
+                                  fontSize: 15,
+                                  color: Color(0xFF64748B),
+                                ),
+                              ),
+                            ),
                           ],
-                        );
-                      },
-                    ),
-                  ],
+                        ),
+                        const SizedBox(height: 20),
+                        Row(
+                          children: [
+                            const Icon(Icons.store_outlined,
+                                color: brandRed, size: 20),
+                            const SizedBox(width: 14),
+                            Expanded(
+                              child: Text(
+                                'Loja $loja',
+                                style: const TextStyle(
+                                  fontSize: 15,
+                                  color: Color(0xFF1E293B),
+                                  fontWeight: FontWeight.w500,
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ],
+                    );
+                  },
                 ),
               ),
             ),

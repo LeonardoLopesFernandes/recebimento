@@ -37,6 +37,7 @@ class _LoginWebViewScreenState extends State<LoginWebViewScreen> {
   bool _oauthPaginaVisivel = false;
   bool _oauthConsentimentoClicado = false;
   Timer? _oauthTimer;
+  Timer? _oauthInjectTimer;
   bool _autoLogin = false;
   bool _carregando = true;
   bool _pronto = false;
@@ -259,6 +260,7 @@ class _LoginWebViewScreenState extends State<LoginWebViewScreen> {
 
   void _irParaHome() {
     _oauthTimer?.cancel();
+    _oauthInjectTimer?.cancel();
     if (!mounted) return;
     Navigator.of(context).pushReplacementNamed('/home');
   }
@@ -277,6 +279,13 @@ class _LoginWebViewScreenState extends State<LoginWebViewScreen> {
       }
     });
     _controller.loadRequest(Uri.parse(MicrosoftOAuth.getAuthorizeUrl()));
+    // Retenta o preenchimento enquanto o OAuth anda (a página MS pode
+    // trocar de tela entre email/senha em momentos diferentes).
+    _oauthInjectTimer?.cancel();
+    _oauthInjectTimer =
+        Timer.periodic(const Duration(milliseconds: 1500), (_) {
+      if (_oauthEmAndamento) _preencherLoginBRLog();
+    });
   }
 
   Future<void> _tratarPaginaOAuth(String url) async {
@@ -381,6 +390,7 @@ class _LoginWebViewScreenState extends State<LoginWebViewScreen> {
 
   void _finalizarLogin() {
     _oauthTimer?.cancel();
+    _oauthInjectTimer?.cancel();
     if (_oauthSomente) {
       Navigator.of(context).pop();
       return;
@@ -419,6 +429,7 @@ class _LoginWebViewScreenState extends State<LoginWebViewScreen> {
   @override
   void dispose() {
     _oauthTimer?.cancel();
+    _oauthInjectTimer?.cancel();
     super.dispose();
   }
 
