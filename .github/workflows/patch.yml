@@ -16,6 +16,16 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      # Patch sempre baseado na última tag v* (regra do projeto).
+      - name: Checkout da última tag
+        run: |
+          git fetch --tags
+          TAG=$(git tag --list 'v*' --sort=-v:refname | head -n1)
+          echo "Patch baseado na tag $TAG"
+          git checkout $TAG
 
       - name: Set up Java
         uses: actions/setup-java@v4
