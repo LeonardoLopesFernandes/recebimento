@@ -18,7 +18,7 @@ class Constants {
   static const String clientId = "16021f31-43f8-4f7a-8af4-5e47efe7db8a";
   static const String clientSecret =
       const String.fromEnvironment('MICROSOFT_CLIENT_SECRET', defaultValue: '');
-  static const String scopes = "openid profile offline_access";
+  static const String scopes = "openid profile offline_access Files.ReadWrite";
   static const String redirectUri =
       "https://apimobile.brasilrisk.com.br/Validar/SamlResponseConsumer";
   static const String authorizeUrl =

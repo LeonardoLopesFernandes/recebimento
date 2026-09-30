@@ -4,6 +4,7 @@ import 'package:image_picker/image_picker.dart';
 import '../utils/constants.dart';
 import '../utils/excel_downloader.dart';
 import '../utils/fotos_store.dart';
+import '../utils/onedrive_backup.dart';
 
 class FotosRecebimentoScreen extends StatefulWidget {
   const FotosRecebimentoScreen({super.key});
@@ -36,18 +37,69 @@ class _FotosRecebimentoScreenState extends State<FotosRecebimentoScreen> {
 
   Future<void> _daGaleria() async {
     final imgs = await _picker.pickMultiImage();
+    final antes = _fotos.toSet();
     for (final img in imgs) {
       await FotosStore.adicionarImagem(_viagem, File(img.path));
     }
-    _carregar();
+    await _carregar();
+    _backupNovas(antes);
   }
 
   Future<void> _daCamera() async {
     final img = await _picker.pickImage(source: ImageSource.camera);
     if (img != null) {
+      final antes = _fotos.toSet();
       await FotosStore.adicionarImagem(_viagem, File(img.path));
-      _carregar();
+      await _carregar();
+      _backupNovas(antes);
     }
+  }
+
+  /// Sobe ao OneDrive só as fotos recém-adicionadas (sem bloquear a UI).
+  void _backupNovas(Set<String> antes) async {
+    final novas = _fotos.where((p) => !antes.contains(p)).toList();
+    for (final n in novas) {
+      final err = await OneDriveBackup.enviarFoto(_viagem, File(n));
+      if (!mounted) return;
+      if (err != null) {
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+            content: Text(err == 'auth'
+                ? 'Foto salva local. Para o OneDrive, refaça o login (menu BRLog).'
+                : 'Foto salva local. Falha no backup: $err')));
+        return;
+      }
+    }
+  }
+
+  Future<void> _backupPasta() async {
+    final pend =
+        await OneDriveBackup.pendentes(_viagem, _fotos);
+    if (!mounted) return;
+    if (pend.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
+          content: Text('Tudo já está no OneDrive')));
+      return;
+    }
+    ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+        content: Text('Enviando ${pend.length} foto(s)...')));
+    var ok = 0;
+    String? lastErr;
+    for (final p in pend) {
+      final err = await OneDriveBackup.enviarFoto(_viagem, File(p));
+      if (!mounted) return;
+      if (err == null) {
+        ok++;
+      } else {
+        lastErr = err;
+      }
+    }
+    if (!mounted) return;
+    ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+        content: Text(lastErr == 'auth'
+            ? 'Sem permissão no OneDrive: entre novamente pelo menu BRLog.'
+            : (ok == pend.length
+                ? 'Backup concluído: $ok foto(s)'
+                : 'Enviadas $ok/${pend.length} ($lastErr)'))));
   }
 
   void _verFoto(String path) {
@@ -189,6 +241,14 @@ class _FotosRecebimentoScreenState extends State<FotosRecebimentoScreen> {
           icon: const Icon(Icons.arrow_back, color: Colors.white),
           onPressed: () => Navigator.of(context).pop(),
         ),
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.cloud_upload_outlined,
+                color: Colors.white),
+            tooltip: 'Backup OneDrive',
+            onPressed: _backupPasta,
+          ),
+        ],
         title: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
