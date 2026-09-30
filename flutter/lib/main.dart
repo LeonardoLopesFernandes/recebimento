@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_localizations/flutter_localizations.dart';
 import 'widgets/truck_loader.dart';
 import 'utils/constants.dart';
 import 'network/session_manager.dart';
@@ -21,9 +22,19 @@ class MyApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
-      title: 'Recebimento',
-      debugShowCheckedModeBanner: false,
+      return MaterialApp(
+        title: 'Recebimento',
+        debugShowCheckedModeBanner: false,
+        localizationsDelegates: const [
+          GlobalMaterialLocalizations.delegate,
+          GlobalWidgetsLocalizations.delegate,
+          GlobalCupertinoLocalizations.delegate,
+        ],
+        supportedLocales: const [
+          Locale('pt', 'BR'),
+          Locale('en', 'US'),
+        ],
+        locale: const Locale('pt', 'BR'),
       theme: ThemeData(
         primaryColor: const Color(Constants.primaryRed),
         colorScheme: ColorScheme.fromSeed(
