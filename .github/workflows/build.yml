@@ -34,7 +34,9 @@ jobs:
             echo "$SDK/cmdline-tools/16.0/bin" >> $GITHUB_PATH
           fi
           echo "$SDK/platform-tools" >> $GITHUB_PATH
-          sdkmanager --version
+          if [ -d "$SDK/cmdline-tools/latest" ]; then TOOLS="$SDK/cmdline-tools/latest/bin"; else TOOLS="$SDK/cmdline-tools/16.0/bin"; fi
+          ls "$SDK/cmdline-tools/"
+          "$TOOLS/sdkmanager" --version
 
       - name: Accept Android licenses
         run: yes | sdkmanager --licenses || true
