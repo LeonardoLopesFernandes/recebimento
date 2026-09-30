@@ -155,7 +155,14 @@ class SessionManager {
 
   void clearCredentials() => _prefs.remove(_keyMsPassword);
 
-  void clearAll() => _prefs.clear();
+  /// Logout preserva as pastas de fotos (FOTOS_PASTAS): são dados do
+  /// aparelho/loja, não da conta — sem isso as pastas (e as fotos
+  /// renomeadas) sumiam da tela Imagens ao deslogar.
+  void clearAll() {
+    final fotos = _prefs.getString('FOTOS_PASTAS');
+    _prefs.clear();
+    if (fotos != null) _prefs.setString('FOTOS_PASTAS', fotos);
+  }
 }
 
 Map<String, dynamic> _notaToMap(BrasilRiskNota n) => {
