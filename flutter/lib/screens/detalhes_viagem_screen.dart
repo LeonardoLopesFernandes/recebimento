@@ -376,7 +376,13 @@ class _DetalhesViagemScreenState extends State<DetalhesViagemScreen> {
     if (escolha == null || escolha.isEmpty) return;
     final filtrados = todos
         .where((i) => escolha.contains(i.departamento.trim()))
-        .toList();
+        .toList()
+      ..sort((a, b) {
+        final c =
+            a.departamento.trim().compareTo(b.departamento.trim());
+        if (c != 0) return c;
+        return a.descricao.compareTo(b.descricao);
+      });
     final sufixo = escolha.length == 1
         ? ' - ${escolha.first}'
         : (escolha.length == ordenados.length
