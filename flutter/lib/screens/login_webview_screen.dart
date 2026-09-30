@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:convert';
 import 'package:flutter/material.dart';
+import '../widgets/truck_loader.dart';
 import 'package:webview_flutter/webview_flutter.dart';
 import '../models/brasil_risk.dart';
 import '../network/session_manager.dart';
@@ -464,59 +465,15 @@ class _LoginWebViewScreenState extends State<LoginWebViewScreen> {
 /// logo do caminhão centralizado com animação de pulso e texto "Autenticando...".
 /// Exibida após capturar o token, enquanto o fluxo OAuth BRLog roda oculto na
 /// WebView; ao concluir, navega para o home sem nunca mostrar a WebView.
-class _CarregamentoWidget extends StatefulWidget {
+class _CarregamentoWidget extends StatelessWidget {
   const _CarregamentoWidget();
-
-  @override
-  State<_CarregamentoWidget> createState() => _CarregamentoWidgetState();
-}
-
-class _CarregamentoWidgetState extends State<_CarregamentoWidget>
-    with SingleTickerProviderStateMixin {
-  late final AnimationController _pulse;
-
-  @override
-  void initState() {
-    super.initState();
-    _pulse = AnimationController(
-      vsync: this,
-      duration: const Duration(milliseconds: 900),
-    )..repeat(reverse: true);
-  }
-
-  @override
-  void dispose() {
-    _pulse.dispose();
-    super.dispose();
-  }
 
   @override
   Widget build(BuildContext context) {
     return Container(
       color: const Color(Constants.primaryRed),
-      child: Center(
-        child: FadeTransition(
-          opacity: _pulse.drive(Tween<double>(begin: 1.0, end: 0.2)),
-          child: ScaleTransition(
-            scale: _pulse.drive(Tween<double>(begin: 1.0, end: 0.85)),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Image.asset(
-                  'assets/drawables/ic_caminhao_logo.png',
-                  width: 160,
-                  height: 160,
-                  fit: BoxFit.contain,
-                ),
-                const SizedBox(height: 24),
-                const Text(
-                  'Autenticando...',
-                  style: TextStyle(color: Colors.white, fontSize: 16),
-                ),
-              ],
-            ),
-          ),
-        ),
+      child: const Center(
+        child: TruckLoader(status: 'Autenticando...'),
       ),
     );
   }

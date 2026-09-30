@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'widgets/truck_loader.dart';
 import 'utils/constants.dart';
 import 'network/session_manager.dart';
 import 'screens/login_screen.dart';
@@ -81,7 +82,7 @@ class _SplashDeciderState extends State<SplashDecider> {
     return const Scaffold(
       backgroundColor: Color(Constants.primaryRed),
       body: Center(
-        child: CircularProgressIndicator(color: Colors.white),
+        child: TruckLoader(),
       ),
     );
   }
