@@ -1,6 +1,27 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import '../utils/constants.dart';
 import '../utils/fotos_store.dart';
+
+/// Máscara automática dd/mm/aaaa: "08"+"10" -> "08/10", +ano -> "08/10/2026".
+class _DataMaskFormatter extends TextInputFormatter {
+  @override
+  TextEditingValue formatEditUpdate(
+      TextEditingValue oldValue, TextEditingValue newValue) {
+    var digits = newValue.text.replaceAll(RegExp(r'[^0-9]'), '');
+    if (digits.length > 8) digits = digits.substring(0, 8);
+    final buf = StringBuffer();
+    for (var i = 0; i < digits.length; i++) {
+      buf.write(digits[i]);
+      if ((i == 1 || i == 3) && i != digits.length - 1) buf.write('/');
+    }
+    final text = buf.toString();
+    return TextEditingValue(
+      text: text,
+      selection: TextSelection.collapsed(offset: text.length),
+    );
+  }
+}
 
 class ImagensRecebimentoScreen extends StatefulWidget {
   const ImagensRecebimentoScreen({super.key});
@@ -47,6 +68,8 @@ class _ImagensRecebimentoScreenState
             ),
             TextField(
               controller: dataCtl,
+              keyboardType: TextInputType.number,
+              inputFormatters: [_DataMaskFormatter()],
               decoration: const InputDecoration(labelText: 'Data (dd/mm/aaaa)'),
             ),
           ],
@@ -60,7 +83,12 @@ class _ImagensRecebimentoScreenState
             onPressed: () async {
               final v = viagemCtl.text.trim();
               final d = dataCtl.text.trim();
-              if (v.isEmpty || d.isEmpty) return;
+              if (v.isEmpty || d.length < 10) {
+                ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
+                    content: Text(
+                        'Informe a viagem e a data completa (dd/mm/aaaa)')));
+                return;
+              }
               await FotosStore.criarPasta(v, d);
               Navigator.of(context).pop();
               _carregar();

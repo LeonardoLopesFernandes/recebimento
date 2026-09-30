@@ -73,7 +73,77 @@ class _FotosRecebimentoScreenState extends State<FotosRecebimentoScreen> {
 
   void _excluir(String path) async {
     await FotosStore.excluirFoto(_viagem, path);
+    if (!mounted) return;
+    ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Foto excluída')));
     _carregar();
+  }
+
+  void _opcoesFoto(String path) {
+    showDialog(
+      context: context,
+      builder: (_) => AlertDialog(
+        backgroundColor: Colors.white,
+        contentPadding: const EdgeInsets.symmetric(vertical: 8),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            ListTile(
+              leading: const Icon(Icons.edit,
+                  color: Color(Constants.primaryRed)),
+              title: const Text('Renomear'),
+              onTap: () async {
+                Navigator.of(context).pop();
+                final atual =
+                    path.split('/').last.split('.').first;
+                final ctl = TextEditingController(text: atual);
+                final novo = await showDialog<String>(
+                  context: context,
+                  builder: (_) => AlertDialog(
+                    backgroundColor: Colors.white,
+                    title: const Text('Renomear foto'),
+                    content: TextField(
+                      controller: ctl,
+                      decoration: const InputDecoration(
+                          labelText: 'Nome (sem extensão)'),
+                    ),
+                    actions: [
+                      TextButton(
+                          onPressed: () =>
+                              Navigator.of(context).pop(),
+                          child: const Text('CANCELAR')),
+                      TextButton(
+                          onPressed: () => Navigator.of(context)
+                              .pop(ctl.text.trim()),
+                          child: const Text('SALVAR')),
+                    ],
+                  ),
+                );
+                if (novo != null && novo.isNotEmpty) {
+                  final ok = await FotosStore.renomearFoto(
+                      _viagem, path, novo);
+                  if (!mounted) return;
+                  ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+                      content: Text(ok
+                          ? 'Foto renomeada'
+                          : 'Não foi possível renomear')));
+                  _carregar();
+                }
+              },
+            ),
+            ListTile(
+              leading:
+                  const Icon(Icons.delete, color: Colors.red),
+              title: const Text('Excluir'),
+              onTap: () {
+                Navigator.of(context).pop();
+                _excluir(path);
+              },
+            ),
+          ],
+        ),
+      ),
+    );
   }
 
   @override
@@ -110,7 +180,7 @@ class _FotosRecebimentoScreenState extends State<FotosRecebimentoScreen> {
                 final path = _fotos[i];
                 return GestureDetector(
                   onTap: () => _verFoto(path),
-                  onLongPress: () => _excluir(path),
+                  onLongPress: () => _opcoesFoto(path),
                   child: Image.file(File(path), fit: BoxFit.cover),
                 );
               },

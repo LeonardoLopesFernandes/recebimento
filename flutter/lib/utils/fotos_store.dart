@@ -61,6 +61,23 @@ class FotosStore {
     }
   }
 
+  static Future<bool> renomearFoto(
+      String viagem, String caminho, String novoNome) async {
+    try {
+      var nome = novoNome.trim().replaceAll('/', '_');
+      if (nome.isEmpty) return false;
+      final ext = caminho.split('.').last.toLowerCase();
+      if (!nome.toLowerCase().endsWith('.$ext')) nome = '$nome.$ext';
+      final dir = await pastaDir(viagem);
+      final destino = File('${dir.path}/$nome');
+      if (await destino.exists()) return false;
+      await File(caminho).rename(destino.path);
+      return true;
+    } catch (_) {
+      return false;
+    }
+  }
+
   static Future<List<PastaFotos>> getPastas() async {
     final prefs = await SharedPreferences.getInstance();
     final json = prefs.getString(_keyPastas);
