@@ -30,16 +30,20 @@ class _LoginScreenState extends State<LoginScreen> {
     if (mounted) setState(() {});
   }
 
-  void _entrar() {
+  Future<void> _entrar() async {
     final email = _emailController.text.trim();
     final senha = _senhaController.text;
     if (email.isEmpty || senha.isEmpty) {
       _toast("Preencha email e senha para entrar");
       return;
     }
-    if (_salvarCredenciais && !_emailController.text.isEmpty) {
-      // salvo ao abrir o webview
+    final session = await SessionManager.create();
+    if (_salvarCredenciais && email.isNotEmpty) {
+      session.saveCredentials(email, senha);
+    } else {
+      session.clearCredentials();
     }
+    if (!mounted) return;
     Navigator.of(context).pushNamed(
       '/login_webview',
       arguments: {
