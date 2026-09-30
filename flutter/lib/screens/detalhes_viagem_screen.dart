@@ -374,15 +374,18 @@ class _DetalhesViagemScreenState extends State<DetalhesViagemScreen> {
       ),
     );
     if (escolha == null || escolha.isEmpty) return;
-    final filtrados = todos
-        .where((i) => escolha.contains(i.departamento.trim()))
-        .toList()
-      ..sort((a, b) {
-        final c =
-            a.departamento.trim().compareTo(b.departamento.trim());
-        if (c != 0) return c;
-        return a.descricao.compareTo(b.descricao);
-      });
+    // Agrupa por departamento (ordem alfabética) preservando a sequência
+    // original dos itens (1, 2, 3...) dentro de cada um.
+    final porDep = <String, List<RecebimentoItem>>{};
+    for (final i in todos) {
+      final dep = i.departamento.trim();
+      if (!escolha.contains(dep)) continue;
+      (porDep[dep] ??= []).add(i);
+    }
+    final filtrados = [
+      for (final d in ordenados)
+        if (porDep.containsKey(d)) ...porDep[d]!
+    ];
     final sufixo = escolha.length == 1
         ? ' - ${escolha.first}'
         : (escolha.length == ordenados.length

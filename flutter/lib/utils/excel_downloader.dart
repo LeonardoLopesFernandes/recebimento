@@ -65,7 +65,7 @@ class ExcelDownloader {
     required double total,
   }) async {
     final doc = pw.Document();
-    final headers = ['DEP', 'SAP', 'DESCRIÇÃO', 'QTD', 'CONFERÊNCIA'];
+    final headers = ['#', 'DEP', 'SAP', 'DESCRIÇÃO', 'QTD', 'CONFERÊNCIA'];
     doc.addPage(
       pw.MultiPage(
         pageFormat: pdf.PdfPageFormat.a4,
@@ -90,9 +90,13 @@ class ExcelDownloader {
             headerDecoration:
                 const pw.BoxDecoration(color: pdf.PdfColors.red),
             cellAlignment: pw.Alignment.centerLeft,
-            data: itens.map((item) {
-              final sap = int.tryParse(item.idSap)?.toString() ?? item.idSap;
+            data: itens.asMap().entries.map((e) {
+              final idx = e.key;
+              final item = e.value;
+              final sap =
+                  int.tryParse(item.idSap)?.toString() ?? item.idSap;
               return [
+                '${idx + 1}',
                 item.departamento,
                 sap,
                 item.descricao,
