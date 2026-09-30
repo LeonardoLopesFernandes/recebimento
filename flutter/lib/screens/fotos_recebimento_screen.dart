@@ -203,18 +203,41 @@ class _FotosRecebimentoScreenState extends State<FotosRecebimentoScreen> {
           ? const Center(child: Text('Nenhuma foto nesta viagem'))
           : GridView.builder(
               padding: const EdgeInsets.all(8),
-              gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+              gridDelegate:
+                  const SliverGridDelegateWithFixedCrossAxisCount(
                 crossAxisCount: 3,
                 crossAxisSpacing: 4,
                 mainAxisSpacing: 4,
+                childAspectRatio: 0.82,
               ),
               itemCount: _fotos.length,
               itemBuilder: (ctx, i) {
                 final path = _fotos[i];
+                final nome = path.split('/').last;
                 return GestureDetector(
                   onTap: () => _verFoto(path),
                   onLongPress: () => _opcoesFoto(path),
-                  child: Image.file(File(path), fit: BoxFit.cover),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: [
+                      Expanded(
+                        child: ClipRRect(
+                          borderRadius: BorderRadius.circular(6),
+                          child: Image.file(File(path),
+                              fit: BoxFit.cover),
+                        ),
+                      ),
+                      const SizedBox(height: 2),
+                      Text(
+                        nome,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        textAlign: TextAlign.center,
+                        style: const TextStyle(
+                            fontSize: 10, color: Color(0xFF4A5568)),
+                      ),
+                    ],
+                  ),
                 );
               },
             ),
