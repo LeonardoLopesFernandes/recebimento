@@ -113,6 +113,14 @@ class ExcelDownloader {
     return _salvarEmDownloads(nome, 'application/pdf', bytes);
   }
 
+  /// Salva um arquivo qualquer em Downloads (ex.: foto para compartilhar).
+  static Future<String> salvarArquivoEmDownloads({
+    required String nome,
+    required String mimeType,
+    required List<int> bytes,
+  }) =>
+      _salvarEmDownloads(nome, mimeType, bytes);
+
   /// Salva na pasta Downloads nativa do Android via MediaStore.
   /// Fallback: pasta Downloads do app (getDownloadsDirectory) ou documents.
   static Future<String> _salvarEmDownloads(

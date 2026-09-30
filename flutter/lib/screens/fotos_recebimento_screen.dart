@@ -2,6 +2,7 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import '../utils/constants.dart';
+import '../utils/excel_downloader.dart';
 import '../utils/fotos_store.dart';
 
 class FotosRecebimentoScreen extends StatefulWidget {
@@ -138,6 +139,38 @@ class _FotosRecebimentoScreenState extends State<FotosRecebimentoScreen> {
               onTap: () {
                 Navigator.of(context).pop();
                 _excluir(path);
+              },
+            ),
+            ListTile(
+              leading: const Icon(Icons.share,
+                  color: Color(Constants.primaryRed)),
+              title: const Text('Compartilhar'),
+              onTap: () async {
+                Navigator.of(context).pop();
+                ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(
+                        content: Text('Salvando em Downloads...')));
+                try {
+                  final bytes = await File(path).readAsBytes();
+                  final nome = path.split('/').last;
+                  final ext = nome.split('.').last.toLowerCase();
+                  final mime = ext == 'png'
+                      ? 'image/png'
+                      : 'image/jpeg';
+                  final destino =
+                      await ExcelDownloader.salvarArquivoEmDownloads(
+                    nome: nome,
+                    mimeType: mime,
+                    bytes: bytes,
+                  );
+                  if (!mounted) return;
+                  ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+                      content: Text('Imagem salva: $destino')));
+                } catch (e) {
+                  if (!mounted) return;
+                  ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(content: Text('❌ $e')));
+                }
               },
             ),
           ],
