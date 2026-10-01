@@ -27,9 +27,8 @@ class MicrosoftOAuth {
       'response_mode': 'query',
       'state': state,
       'nonce': 'brlog$state',
-      // Mostra a tela "Escolher uma conta" com as contas salvas, evitando
-      // reautenticar silenciosamente a conta anterior ao trocar de conta.
-      'prompt': 'select_account',
+      // Sem 'prompt': aproveita a sessão Microsoft já existente (SSO) e
+      // sincroniza direto, sem pedir autenticação — igual ao app original.
     };
     final query = params.entries
         .map((e) =>
