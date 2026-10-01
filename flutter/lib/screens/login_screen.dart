@@ -33,14 +33,10 @@ class _LoginScreenState extends State<LoginScreen> {
   Future<void> _entrar() async {
     final email = _emailController.text.trim();
     final senha = _senhaController.text;
-    if (email.isEmpty || senha.isEmpty) {
-      _toast("Preencha email e senha para entrar");
-      return;
-    }
     final session = await SessionManager.create();
     if (_salvarCredenciais && email.isNotEmpty) {
       session.saveCredentials(email, senha);
-    } else {
+    } else if (!_salvarCredenciais) {
       session.clearCredentials();
     }
     if (!mounted) return;
@@ -317,36 +313,13 @@ class _LoginScreenState extends State<LoginScreen> {
                               textStyle: const TextStyle(
                                   fontSize: 16, fontWeight: FontWeight.bold),
                             ),
-                            child: const Text('ENTRAR'),
-                          ),
-                          const SizedBox(height: 10),
-                          ElevatedButton.icon(
-                            onPressed: _entrarMicrosoft,
-                            icon: const Icon(Icons.business, size: 20),
-                            label: const Text('ENTRAR COM MICROSOFT'),
-                            style: ElevatedButton.styleFrom(
-                              backgroundColor: const Color(0xFFF3F4F9),
-                              foregroundColor:
-                                  const Color(Constants.textDark),
-                              padding:
-                                  const EdgeInsets.symmetric(vertical: 14),
-                              shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(14),
-                              ),
-                              textStyle: const TextStyle(
-                                  fontSize: 14, fontWeight: FontWeight.bold),
-                            ),
-                          ),
-                          const SizedBox(height: 10),
-                          TextButton.icon(
-                            onPressed: _entrarComTokenManual,
-                            icon: const Icon(Icons.vpn_key, size: 18),
-                            label: const Text('ENTRAR COM TOKEN'),
-                            style: TextButton.styleFrom(
-                              foregroundColor:
-                                  const Color(Constants.textDark),
-                              textStyle: const TextStyle(
-                                  fontSize: 13, fontWeight: FontWeight.bold),
+                            child: const Row(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                _MicrosoftLogo(size: 20),
+                                SizedBox(width: 10),
+                                Text('Login Microsoft'),
+                              ],
                             ),
                           ),
                         ],
@@ -383,6 +356,42 @@ class _LoginScreenState extends State<LoginScreen> {
             ),
           ],
         ),
+      ),
+    );
+  }
+}
+
+/// Logo 2x2 da Microsoft (4 quadrados coloridos).
+class _MicrosoftLogo extends StatelessWidget {
+  final double size;
+  const _MicrosoftLogo({this.size = 20});
+
+  @override
+  Widget build(BuildContext context) {
+    final c = size / 2 - 1;
+    final tiles = [
+      Container(color: const Color(0xFFF25022)),
+      Container(color: const Color(0xFF7FBA00)),
+      Container(color: const Color(0xFF00A4EF)),
+      Container(color: const Color(0xFFFFBA08)),
+    ];
+    return SizedBox(
+      width: size,
+      height: size,
+      child: Column(
+        children: [
+          Row(children: [
+            SizedBox(width: c, height: c, child: tiles[0]),
+            const SizedBox(width: 2),
+            SizedBox(width: c, height: c, child: tiles[1]),
+          ]),
+          const SizedBox(height: 2),
+          Row(children: [
+            SizedBox(width: c, height: c, child: tiles[2]),
+            const SizedBox(width: 2),
+            SizedBox(width: c, height: c, child: tiles[3]),
+          ]),
+        ],
       ),
     );
   }
