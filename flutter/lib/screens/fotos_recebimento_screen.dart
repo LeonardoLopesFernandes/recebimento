@@ -1,6 +1,7 @@
 import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:share_plus/share_plus.dart';
 import '../utils/constants.dart';
 import '../utils/excel_downloader.dart';
 import '../utils/fotos_store.dart';
@@ -19,6 +20,8 @@ class _FotosRecebimentoScreenState extends State<FotosRecebimentoScreen> {
   String _data = '';
   List<String> _fotos = [];
   final ImagePicker _picker = ImagePicker();
+  bool _modoSelecao = false;
+  final Set<String> _selecionadas = {};
 
   @override
   void didChangeDependencies() {
@@ -246,6 +249,28 @@ class _FotosRecebimentoScreenState extends State<FotosRecebimentoScreen> {
     );
   }
 
+  void _alternarSelecao(String path) {
+    setState(() {
+      if (_selecionadas.contains(path)) {
+        _selecionadas.remove(path);
+      } else {
+        _selecionadas.add(path);
+      }
+    });
+  }
+
+  Future<void> _compartilharSelecionadas() async {
+    final files = _selecionadas.map((p) => XFile(p)).toList();
+    if (files.isEmpty) return;
+    try {
+      await Share.shareXFiles(files, text: 'Fotos da viagem $_viagem');
+    } catch (e) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Não foi possível compartilhar: $e')));
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -253,33 +278,64 @@ class _FotosRecebimentoScreenState extends State<FotosRecebimentoScreen> {
       appBar: AppBar(
         backgroundColor: const Color(Constants.primaryRed),
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back, color: Colors.white),
-          onPressed: () => Navigator.of(context).pop(),
-        ),
-        actions: [
-          IconButton(
-            icon: Icon(
-                _emLista ? Icons.grid_view : Icons.view_list,
-                color: Colors.white),
-            tooltip: _emLista ? 'Ver em grade' : 'Ver em lista',
-            onPressed: () => setState(() => _emLista = !_emLista),
+          icon: Icon(
+            _modoSelecao ? Icons.close : Icons.arrow_back,
+            color: Colors.white,
           ),
-          IconButton(
-            icon: const Icon(Icons.cloud_upload_outlined,
-                color: Colors.white),
-            tooltip: 'Backup OneDrive',
-            onPressed: _backupPasta,
-          ),
-        ],
-        title: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text('Viagem $_viagem',
-                style: const TextStyle(color: Colors.white)),
-            Text(_data.isEmpty ? 'Data não informada' : _data,
-                style: const TextStyle(color: Colors.white70, fontSize: 12)),
-          ],
+          onPressed: () {
+            if (_modoSelecao) {
+              setState(() {
+                _modoSelecao = false;
+                _selecionadas.clear();
+              });
+            } else {
+              Navigator.of(context).pop();
+            }
+          },
         ),
+        actions: _modoSelecao
+            ? [
+                IconButton(
+                  icon: const Icon(Icons.share, color: Colors.white),
+                  tooltip: 'Compartilhar selecionadas',
+                  onPressed: _selecionadas.isEmpty
+                      ? null
+                      : _compartilharSelecionadas,
+                ),
+              ]
+            : [
+                IconButton(
+                  icon: const Icon(Icons.checklist, color: Colors.white),
+                  tooltip: 'Selecionar',
+                  onPressed: () => setState(() => _modoSelecao = true),
+                ),
+                IconButton(
+                  icon: Icon(
+                      _emLista ? Icons.grid_view : Icons.view_list,
+                      color: Colors.white),
+                  tooltip: _emLista ? 'Ver em grade' : 'Ver em lista',
+                  onPressed: () => setState(() => _emLista = !_emLista),
+                ),
+                IconButton(
+                  icon: const Icon(Icons.cloud_upload_outlined,
+                      color: Colors.white),
+                  tooltip: 'Backup OneDrive',
+                  onPressed: _backupPasta,
+                ),
+              ],
+        title: _modoSelecao
+            ? Text('${_selecionadas.length} selecionada(s)',
+                style: const TextStyle(color: Colors.white))
+            : Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text('Viagem $_viagem',
+                      style: const TextStyle(color: Colors.white)),
+                  Text(_data.isEmpty ? 'Data não informada' : _data,
+                      style: const TextStyle(
+                          color: Colors.white70, fontSize: 12)),
+                ],
+              ),
       ),
       body: _fotos.isEmpty
           ? const Center(child: Text('Nenhuma foto nesta viagem'))
@@ -292,6 +348,9 @@ class _FotosRecebimentoScreenState extends State<FotosRecebimentoScreen> {
                     final path = _fotos[i];
                     final nome = path.split('/').last;
                     return Card(
+                      color: _selecionadas.contains(path)
+                          ? const Color(0xFFFFEBEE)
+                          : null,
                       margin: const EdgeInsets.symmetric(
                           horizontal: 12, vertical: 4),
                       child: ListTile(
@@ -315,10 +374,23 @@ class _FotosRecebimentoScreenState extends State<FotosRecebimentoScreen> {
                           style: const TextStyle(
                               fontSize: 12, color: Colors.grey),
                         ),
-                        trailing: const Icon(Icons.chevron_right,
-                            color: Colors.grey),
-                        onTap: () => _verFoto(path),
-                        onLongPress: () => _opcoesFoto(path),
+                        trailing: _modoSelecao
+                            ? Icon(
+                                _selecionadas.contains(path)
+                                    ? Icons.check_circle
+                                    : Icons.radio_button_unchecked,
+                                color: _selecionadas.contains(path)
+                                    ? const Color(Constants.primaryRed)
+                                    : Colors.grey,
+                              )
+                            : const Icon(Icons.chevron_right,
+                                color: Colors.grey),
+                        onTap: () => _modoSelecao
+                            ? _alternarSelecao(path)
+                            : _verFoto(path),
+                        onLongPress: _modoSelecao
+                            ? null
+                            : () => _opcoesFoto(path),
                       ),
                     );
                   },
@@ -337,27 +409,45 @@ class _FotosRecebimentoScreenState extends State<FotosRecebimentoScreen> {
                 final path = _fotos[i];
                 final nome = path.split('/').last;
                 return GestureDetector(
-                  onTap: () => _verFoto(path),
-                  onLongPress: () => _opcoesFoto(path),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                  onTap: () =>
+                      _modoSelecao ? _alternarSelecao(path) : _verFoto(path),
+                  onLongPress:
+                      _modoSelecao ? null : () => _opcoesFoto(path),
+                  child: Stack(
                     children: [
-                      Expanded(
-                        child: ClipRRect(
-                          borderRadius: BorderRadius.circular(6),
-                          child: Image.file(File(path),
-                              fit: BoxFit.cover),
+                      Column(
+                        crossAxisAlignment: CrossAxisAlignment.stretch,
+                        children: [
+                          Expanded(
+                            child: ClipRRect(
+                              borderRadius: BorderRadius.circular(6),
+                              child: Image.file(File(path),
+                                  fit: BoxFit.cover),
+                            ),
+                          ),
+                          const SizedBox(height: 2),
+                          Text(
+                            nome,
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                            textAlign: TextAlign.center,
+                            style: const TextStyle(
+                                fontSize: 10, color: Color(0xFF4A5568)),
+                          ),
+                        ],
+                      ),
+                      if (_selecionadas.contains(path))
+                        Positioned.fill(
+                          child: Container(
+                            decoration: BoxDecoration(
+                              color: Colors.black38,
+                              borderRadius: BorderRadius.circular(6),
+                            ),
+                            alignment: Alignment.center,
+                            child: const Icon(Icons.check_circle,
+                                color: Colors.white, size: 32),
+                          ),
                         ),
-                      ),
-                      const SizedBox(height: 2),
-                      Text(
-                        nome,
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                        textAlign: TextAlign.center,
-                        style: const TextStyle(
-                            fontSize: 10, color: Color(0xFF4A5568)),
-                      ),
                     ],
                   ),
                 );

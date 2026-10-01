@@ -51,6 +51,9 @@ dependencies:
   # Câmera / galeria (telas de fotos)
   image_picker: ^1.0.7
 
+  # Compartilhar arquivos (fotos por seleção)
+  share_plus: ^7.2.2
+
 dev_dependencies:
   flutter_test:
     sdk: flutter
