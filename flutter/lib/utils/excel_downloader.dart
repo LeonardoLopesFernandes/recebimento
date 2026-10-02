@@ -65,48 +65,106 @@ class ExcelDownloader {
     required double total,
     bool mostrarTotal = true,
   }) async {
-    final doc = pw.Document();
+    final theme = await _loadPdfTheme();
+    final doc = pw.Document(theme: theme, title: titulo, creator: 'Recebimento');
+
+    final corMarca = const pdf.PdfColor.fromInt(0xFFE5093A);
+    final corBorda = const pdf.PdfColor.fromInt(0xFFCBD5E1);
+    final corZebra = const pdf.PdfColor.fromInt(0xFFF5F5F5);
+
     final headers = ['#', 'DEP', 'SAP', 'DESCRIÇÃO', 'QTD', 'CONFERÊNCIA'];
+    final data = itens.asMap().entries.map((e) {
+      final idx = e.key;
+      final item = e.value;
+      final sap = int.tryParse(item.idSap)?.toString() ?? item.idSap;
+      return <String>[
+        '${idx + 1}',
+        item.departamento,
+        sap,
+        item.descricao,
+        item.quantidade.toString(),
+        '',
+      ];
+    }).toList();
+
     doc.addPage(
       pw.MultiPage(
         pageFormat: pdf.PdfPageFormat.a4,
-        build: (context) => [
-          pw.Header(
-            level: 0,
-            child: pw.Text(titulo,
-                style: pw.TextStyle(
-                    fontSize: 16, fontWeight: pw.FontWeight.bold)),
-          ),
-          if (mostrarTotal)
-            pw.Paragraph(
-              text:
-                  "Total: ${CurrencyFormatter.formatarMoedaComSimbolo(total)}",
-              style: pw.TextStyle(
-                  fontSize: 12, fontWeight: pw.FontWeight.bold),
+        margin: const pw.EdgeInsets.fromLTRB(28, 26, 28, 30),
+        header: (ctx) => pw.Container(
+          margin: const pw.EdgeInsets.only(bottom: 8),
+          padding: const pw.EdgeInsets.only(bottom: 6),
+          decoration: pw.BoxDecoration(
+            border: pw.Border(
+              bottom: pw.BorderSide(color: corMarca, width: 1.2),
             ),
-          if (mostrarTotal) pw.SizedBox(height: 8),
-          pw.Table.fromTextArray(
-            context: context,
+          ),
+          child: pw.Row(
+            mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
+            crossAxisAlignment: pw.CrossAxisAlignment.end,
+            children: [
+              pw.Expanded(
+                child: pw.Text(
+                  titulo,
+                  style: pw.TextStyle(
+                    fontSize: 15,
+                    fontWeight: pw.FontWeight.bold,
+                    color: corMarca,
+                  ),
+                ),
+              ),
+              if (mostrarTotal)
+                pw.Text(
+                  'Total: ${CurrencyFormatter.formatarMoedaComSimbolo(total)}',
+                  style: pw.TextStyle(
+                      fontSize: 13, fontWeight: pw.FontWeight.bold),
+                ),
+            ],
+          ),
+        ),
+        footer: (ctx) => pw.Container(
+          alignment: pw.Alignment.centerRight,
+          margin: const pw.EdgeInsets.only(top: 6),
+          child: pw.Text(
+            'Página ${ctx.pageNumber} de ${ctx.pagesCount}',
+            style: const pw.TextStyle(
+                fontSize: 9, color: pdf.PdfColor.fromInt(0xFF64748B)),
+          ),
+        ),
+        build: (_) => [
+          pw.TableHelper.fromTextArray(
             headers: headers,
+            data: data,
+            border: pw.TableBorder.all(color: corBorda, width: 0.6),
+            headerDecoration: pw.BoxDecoration(color: corMarca),
             headerStyle: pw.TextStyle(
-                fontWeight: pw.FontWeight.bold, color: pdf.PdfColors.white),
-            headerDecoration:
-                const pw.BoxDecoration(color: pdf.PdfColors.red),
-            cellAlignment: pw.Alignment.centerLeft,
-            data: itens.asMap().entries.map((e) {
-              final idx = e.key;
-              final item = e.value;
-              final sap =
-                  int.tryParse(item.idSap)?.toString() ?? item.idSap;
-              return [
-                '${idx + 1}',
-                item.departamento,
-                sap,
-                item.descricao,
-                item.quantidade.toString(),
-                '',
-              ];
-            }).toList(),
+              color: pdf.PdfColors.white,
+              fontWeight: pw.FontWeight.bold,
+              fontSize: 10.5,
+            ),
+            headerAlignment: pw.Alignment.center,
+            headerPadding:
+                const pw.EdgeInsets.symmetric(horizontal: 5, vertical: 8),
+            cellStyle: const pw.TextStyle(fontSize: 10),
+            cellPadding:
+                const pw.EdgeInsets.symmetric(horizontal: 5, vertical: 7),
+            cellAlignments: const {
+              0: pw.Alignment.center,
+              1: pw.Alignment.centerLeft,
+              2: pw.Alignment.center,
+              3: pw.Alignment.centerLeft,
+              4: pw.Alignment.center,
+              5: pw.Alignment.center,
+            },
+            columnWidths: const {
+              0: pw.FlexColumnWidth(0.55),
+              1: pw.FlexColumnWidth(1.7),
+              2: pw.FlexColumnWidth(1.8),
+              3: pw.FlexColumnWidth(4.6),
+              4: pw.FlexColumnWidth(0.85),
+              5: pw.FlexColumnWidth(2.1),
+            },
+            oddRowDecoration: pw.BoxDecoration(color: corZebra),
           ),
         ],
       ),
@@ -114,6 +172,23 @@ class ExcelDownloader {
     final nome = "${prefixo}_${_short(titulo)}_${_timestamp()}.pdf";
     final bytes = await doc.save();
     return _salvarEmDownloads(nome, 'application/pdf', bytes);
+  }
+
+  /// Helvetica embutida no PDF: garante o mesmo desenho de fonte em qualquer
+  /// visualizador/impressora (as fontes padrão não são embutidas e podem ser
+  /// substituídas com menor qualidade). Cai para o tema padrão se faltar.
+  static pw.ThemeData? _pdfTheme;
+  static Future<pw.ThemeData?> _loadPdfTheme() async {
+    if (_pdfTheme != null) return _pdfTheme;
+    try {
+      final base =
+          pw.Font.ttf(await rootBundle.load('assets/fonts/helvetica.ttf'));
+      final bold = pw.Font.ttf(
+          await rootBundle.load('assets/fonts/helvetica_bold.ttf'));
+      return _pdfTheme = pw.ThemeData.withFont(base: base, bold: bold);
+    } catch (_) {
+      return null;
+    }
   }
 
   /// Salva um arquivo qualquer em Downloads (ex.: foto para compartilhar).
