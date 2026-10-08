@@ -65,8 +65,8 @@ jobs:
       - name: Flutter pub get
         run: flutter pub get
 
-      - name: Build release APK (split arm64-v8a, updatable)
-        run: flutter build apk --split-per-abi --target-platform android-arm64 --build-number=$BUILD_NUMBER --build-name="1.0.$BUILD_NUMBER" --dart-define=MICROSOFT_CLIENT_SECRET=$microsoftClientSecret
+      - name: Build release APK (arm64-v8a, updatable)
+        run: flutter build apk --target-platform android-arm64 --build-number=$BUILD_NUMBER --build-name="1.0.$BUILD_NUMBER" --dart-define=MICROSOFT_CLIENT_SECRET=$microsoftClientSecret
         env:
           KEYSTORE_PATH: ${{ github.workspace }}/release-key.jks
           KEYSTORE_PASSWORD: ${{ secrets.KEYSTORE_PASSWORD }}
@@ -76,7 +76,7 @@ jobs:
           BUILD_NUMBER: ${{ github.run_number }}
 
       - name: Renomear APK
-        run: cp build/app/outputs/flutter-apk/*arm64-v8a*.apk build/app/outputs/flutter-apk/recebimento_flutter.apk && ls -la build/app/outputs/flutter-apk/recebimento_flutter.apk
+        run: cp build/app/outputs/flutter-apk/app-release.apk build/app/outputs/flutter-apk/recebimento_flutter.apk && ls -la build/app/outputs/flutter-apk/recebimento_flutter.apk
 
       - name: Upload arm64-v8a APK
         uses: actions/upload-artifact@v4
