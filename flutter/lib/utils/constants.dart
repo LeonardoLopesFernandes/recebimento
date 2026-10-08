@@ -19,6 +19,9 @@ class Constants {
   static const String clientSecret =
       const String.fromEnvironment('MICROSOFT_CLIENT_SECRET', defaultValue: '');
   static const String scopes = "openid profile offline_access Files.ReadWrite";
+  // Escopo exato do app BRLog (sem Files.ReadWrite, que exige consentimento
+  // de administrador no tenant e o app normal nao solicita).
+  static const String brlogScopes = "openid profile offline_access";
   static const String redirectUri =
       "https://apimobile.brasilrisk.com.br/Validar/SamlResponseConsumer";
   static const String authorizeUrl =

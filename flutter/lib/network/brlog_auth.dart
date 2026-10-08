@@ -21,7 +21,7 @@ class BrLogAuth {
           clientSecret:
               Constants.clientSecret.isEmpty ? null : Constants.clientSecret,
           redirectUri: Constants.redirectUri,
-          scope: Constants.scopes,
+          scope: Constants.brlogScopes,
           responseType: 'code',
           navigatorKey: appNavigatorKey,
         ),
