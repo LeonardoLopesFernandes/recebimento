@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
+import 'app_navigator.dart';
 import 'widgets/truck_loader.dart';
 import 'utils/constants.dart';
 import 'network/session_manager.dart';
@@ -25,6 +26,7 @@ class MyApp extends StatelessWidget {
       return MaterialApp(
         title: 'Recebimento',
         debugShowCheckedModeBanner: false,
+        navigatorKey: appNavigatorKey,
         localizationsDelegates: const [
           GlobalMaterialLocalizations.delegate,
           GlobalWidgetsLocalizations.delegate,

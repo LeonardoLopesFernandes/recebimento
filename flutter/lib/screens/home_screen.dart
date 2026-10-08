@@ -3,12 +3,78 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 import '../models/recebimento.dart';
+import '../models/brasil_risk.dart';
 import '../network/session_manager.dart';
+import '../network/brasil_risk_client.dart';
+import '../network/brlog_auth.dart';
 import '../providers/main_provider.dart';
 import '../utils/constants.dart';
 import '../utils/excel_downloader.dart';
 import '../widgets/trip_card.dart';
 import '../widgets/dialog_protocolo_sucesso.dart';
+
+/// Sincroniza as viagens do BRLog via OAuth Microsoft (aad_oauth), o mesmo
+/// fluxo do app BRLog. Executada somente ao tocar em "Sincronizar viagens".
+Future<void> _sincronizarBRLog(
+    ScaffoldMessengerState messenger, MainProvider provider) async {
+  messenger.showSnackBar(const SnackBar(
+    content: Text('Sincronizando viagens do BRLog...'),
+    duration: Duration(seconds: 2),
+  ));
+
+  BrLogToken? token;
+  try {
+    token = await BrLogAuth.login();
+  } catch (_) {
+    messenger.showSnackBar(const SnackBar(
+      content: Text('Falha ao abrir o login do BRLog'),
+      backgroundColor: Colors.red,
+    ));
+    return;
+  }
+  if (token == null) {
+    messenger.showSnackBar(const SnackBar(
+      content: Text('Sincronização do BRLog cancelada'),
+    ));
+    return;
+  }
+
+  final session = provider.sessionManager;
+  if (token.refreshToken != null && token.refreshToken!.isNotEmpty) {
+    session.saveBrlogRefreshToken(token.refreshToken!);
+  }
+
+  try {
+    final resposta = await BrasilRiskClient()
+        .loginMicrosoft(TokenBody(token: token.accessToken));
+    final lista = resposta.notaFiscal ?? [];
+    final progresso = <String, double>{};
+    for (final nota in lista) {
+      if (nota.numeroViagem == null || nota.progressoViagem == null) continue;
+      var p = nota.progressoViagem!;
+      if (p > 1.0) p /= 100.0;
+      progresso[nota.numeroViagem!] = p.clamp(0.0, 1.0);
+    }
+    if (progresso.isNotEmpty) session.saveBrlogProgress(progresso);
+    if (resposta.codEmpresaUsuario != null) {
+      session.saveBrlogCodEmpresaUsuario(resposta.codEmpresaUsuario!);
+    }
+    if (lista.isNotEmpty) session.saveBrlogNotas(lista);
+
+    provider.recarregarProgressoBRLog();
+    messenger.showSnackBar(SnackBar(
+      content: Text(lista.isEmpty
+          ? 'BRLog: nenhuma viagem em andamento'
+          : 'BRLog sincronizado: ${progresso.length} viagens'),
+      backgroundColor: lista.isEmpty ? null : Colors.green,
+    ));
+  } catch (_) {
+    messenger.showSnackBar(const SnackBar(
+      content: Text('Falha ao sincronizar os dados do BRLog'),
+      backgroundColor: Colors.red,
+    ));
+  }
+}
 
 class HomeScreen extends StatelessWidget {
   const HomeScreen({super.key});
@@ -558,9 +624,9 @@ class _AppDrawer extends StatelessWidget {
                       color: Color(Constants.primaryRed), size: 24),
                   'Sincronizar viagens do BRLog',
                   () {
+                    final messenger = ScaffoldMessenger.of(context);
                     Navigator.of(context).pop();
-                    Navigator.of(context).pushNamed('/login_webview',
-                        arguments: {'oauthOnly': true});
+                    _sincronizarBRLog(messenger, provider);
                   },
                 ),
                 _MenuItem(

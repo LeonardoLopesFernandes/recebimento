@@ -53,6 +53,7 @@ dependencies:
 
   # Compartilhar arquivos (fotos por seleção)
   share_plus: ^7.2.2
+  aad_oauth: ^1.0.1
 
 dev_dependencies:
   flutter_test:
@@ -65,7 +66,6 @@ flutter:
   assets:
     - assets/drawables/
     - assets/fonts/
-    - shorebird.yaml
 
   # Mantém os PNGs originais como ícones do app (igual ao nativo)
   # O launcher é gerado a partir de assets/drawables/ic_launcher.png

@@ -1,12 +1,8 @@
-import 'dart:async';
 import 'dart:convert';
 import 'package:flutter/material.dart';
 import '../widgets/truck_loader.dart';
 import 'package:webview_flutter/webview_flutter.dart';
-import '../models/brasil_risk.dart';
 import '../network/session_manager.dart';
-import '../network/microsoft_oauth.dart';
-import '../network/brasil_risk_client.dart';
 import '../network/api_service.dart';
 import '../network/api_client.dart';
 import '../utils/constants.dart';
@@ -32,13 +28,6 @@ class _LoginWebViewScreenState extends State<LoginWebViewScreen> {
 
   bool _loginConcluido = false;
   bool _tokenEncontrado = false;
-  bool _oauthEmAndamento = false;
-  bool _oauthIniciado = false;
-  bool _oauthSomente = false;
-  bool _oauthPaginaVisivel = false;
-  bool _oauthConsentimentoClicado = false;
-  Timer? _oauthTimer;
-  Timer? _oauthInjectTimer;
   bool _autoLogin = false;
   bool _carregando = true;
   bool _pronto = false;
@@ -53,7 +42,6 @@ class _LoginWebViewScreenState extends State<LoginWebViewScreen> {
       _argsLidos = true;
       final args = ModalRoute.of(context)?.settings.arguments
           as Map<String, dynamic>?;
-      _oauthSomente = args?['oauthOnly'] == true;
       _autoLogin = args?['autoLogin'] == true;
       _email = args?['email'] ?? '';
       _senha = args?['senha'] ?? '';
@@ -74,42 +62,27 @@ class _LoginWebViewScreenState extends State<LoginWebViewScreen> {
           onPageStarted: (url) {
             if (url != null) _verificarTokenNaUrl(url);
             if (url != null) _verificarTokenViaCookies();
-            if (_oauthEmAndamento && url != null && MicrosoftOAuth.isRedirectUrl(url)) {
-              _tratarOAuth(url);
-            }
           },
           onPageFinished: (url) async {
             // Antes de capturar o token, esconde o carregamento para o
             // usuário ver/preencher o login SAML. Depois do token, mantém a
-            // tela de carregamento (logo centralizado) e NUNCA revela a
-            // WebView do OAuth BRLog — espelha o LoginWebViewActivity Kotlin.
+            // tela de carregamento (logo centralizado).
             if (!_loginConcluido && !_tokenEncontrado) {
               setState(() => _carregando = false);
               _verificarTokenViaJavaScript();
               _verificarTokenViaCookies();
               if (_autoLogin) _preencherLoginAutomatico();
             }
-            if (_oauthEmAndamento && url != null) {
-              _tratarPaginaOAuth(url);
-            }
           },
           onNavigationRequest: (request) {
             final url = request.url;
             if (!_loginConcluido) _verificarTokenNaUrl(url);
-            if (_oauthEmAndamento && MicrosoftOAuth.isRedirectUrl(url)) {
-              _tratarOAuth(url);
-              return NavigationDecision.prevent;
-            }
             return NavigationDecision.navigate;
           },
         ),
       );
 
-    if (_oauthSomente) {
-      _iniciarOAuthBRLog();
-    } else {
-      await _controller.loadRequest(Uri.parse(_loginUrl));
-    }
+    await _controller.loadRequest(Uri.parse(_loginUrl));
     _pronto = true;
     if (mounted) setState(() {});
   }
@@ -156,9 +129,8 @@ class _LoginWebViewScreenState extends State<LoginWebViewScreen> {
   Future<void> _verificarTokenViaCookies() async {
     if (_tokenEncontrado || _loginConcluido) return;
     try {
-      final cookies =
-          await _controller.runJavaScriptReturningResult(
-              "(function(){return document.cookie||'';})()");
+      final cookies = await _controller.runJavaScriptReturningResult(
+          "(function(){return document.cookie||'';})()");
       if (cookies is String) {
         final all = cookies.replaceAll('"', '').trim();
         for (final name in ['newToken', 'token']) {
@@ -178,7 +150,6 @@ class _LoginWebViewScreenState extends State<LoginWebViewScreen> {
   }
 
   /// Fluxo minha-loja: valida o token no BFF e vai direto para a home.
-  /// A sincronização BRLog fica on-demand no menu (oauthOnly).
   Future<void> _salvarToken(String token) async {
     if (_loginConcluido) return;
     _loginConcluido = true;
@@ -260,142 +231,7 @@ class _LoginWebViewScreenState extends State<LoginWebViewScreen> {
   }
 
   void _irParaHome() {
-    _oauthTimer?.cancel();
-    _oauthInjectTimer?.cancel();
     if (!mounted) return;
-    Navigator.of(context).pushReplacementNamed('/home');
-  }
-
-  void _iniciarOAuthBRLog() {
-    if (_oauthEmAndamento || _oauthIniciado) return;
-    _oauthEmAndamento = true;
-    _oauthIniciado = true;
-    LogHelper.d("OAuth BRLog: iniciando fluxo silencioso");
-    _oauthTimer?.cancel();
-    _oauthTimer = Timer(const Duration(seconds: 90), () {
-      if (_oauthEmAndamento && mounted) {
-        LogHelper.e("OAuth BRLog: timeout, seguindo sem sincronizar");
-        _oauthEmAndamento = false;
-        _finalizarLogin();
-      }
-    });
-    _controller.loadRequest(Uri.parse(MicrosoftOAuth.getAuthorizeUrl()));
-    // Retenta o preenchimento enquanto o OAuth anda (a página MS pode
-    // trocar de tela entre email/senha em momentos diferentes).
-    _oauthInjectTimer?.cancel();
-    _oauthInjectTimer =
-        Timer.periodic(const Duration(milliseconds: 1500), (_) {
-      if (_oauthEmAndamento) _preencherLoginBRLog();
-    });
-  }
-
-  Future<void> _tratarPaginaOAuth(String url) async {
-    if (!url.startsWith("https://login.microsoftonline.com")) return;
-    if (MicrosoftOAuth.isRedirectUrl(url)) return;
-    final tipo = await _avaliarPaginaOAuth();
-    if (tipo == "login") {
-      // Mantém a tela de carregamento visível (não revela a WebView). Se
-      // houver credenciais salvas, tenta preencher silenciosamente; caso
-      // contrário o timer de 90s encerra e segue para o home.
-      _preencherLoginBRLog();
-    } else if (tipo == "consent") {
-      if (!_oauthConsentimentoClicado) {
-        _oauthConsentimentoClicado = true;
-        await _controller.runJavaScript(
-          "(function(){var b=document.querySelector('input[type=submit]');"
-          "if(b){b.click();return 'ok';}return 'no';})()");
-      }
-    }
-  }
-
-  Future<String> _avaliarPaginaOAuth() async {
-    try {
-      final result = await _controller.runJavaScriptReturningResult(
-        "(function(){if(document.getElementById('i0116'))return 'login';"
-        "var b=document.querySelector('input[type=submit]');"
-        "if(b){var v=(b.value||b.getAttribute('value')||'').toLowerCase();"
-        "if(v.indexOf('accept')>=0||v.indexOf('aceitar')>=0||v.indexOf('concordar')>=0||v.indexOf('permitir')>=0)return 'consent';}"
-        "return 'none';})()");
-      if (result is String) return result.replaceAll('"', '').trim();
-      return 'none';
-    } catch (_) {
-      return 'none';
-    }
-  }
-
-  Future<void> _preencherLoginBRLog() async {
-    if (!_oauthEmAndamento || !mounted) return;
-    final url = await _controller.currentUrl();
-    if (url == null || !url.contains("login.microsoftonline.com")) return;
-    final email = _session.getUserEmail() ?? '';
-    final senha = _session.getSavedPassword() ?? '';
-    if (email.isEmpty || senha.isEmpty) return;
-    final script = _montarScriptPreenchimento(email, senha);
-    await _controller.runJavaScript(script);
-  }
-
-  void _tratarOAuth(String url) {
-    if (!_oauthEmAndamento) return;
-    final erro = MicrosoftOAuth.extrairErro(url);
-    final codigo = MicrosoftOAuth.extrairCodigo(url);
-    if (erro != null || codigo != null) {
-      _oauthEmAndamento = false;
-      if (codigo != null) {
-        _trocarCodigoBRLog(codigo);
-      } else {
-        LogHelper.e("OAuth BRLog: erro AAD ($erro)");
-        _finalizarLogin();
-      }
-    }
-  }
-
-  Future<void> _trocarCodigoBRLog(String codigo) async {
-    final token = await MicrosoftOAuth.trocarCodigoPorToken(codigo);
-    if (token == null) {
-      final motivo = MicrosoftOAuth.ultimoErro ?? "sem resposta";
-      LogHelper.e("OAuth BRLog: falha na troca de token ($motivo)");
-      _finalizarLogin();
-      return;
-    }
-    if (token.refreshToken != null) {
-      _session.saveBrlogRefreshToken(token.refreshToken!);
-    }
-    await _sincronizarProgressoBRLog(token.accessToken);
-    _finalizarLogin();
-  }
-
-  Future<void> _sincronizarProgressoBRLog(String accessToken) async {
-    try {
-      final api = BrasilRiskClient();
-      final resposta =
-          await api.loginMicrosoft(TokenBody(token: accessToken));
-      final lista = resposta.notaFiscal ?? [];
-      final progresso = <String, double>{};
-      for (final nota in lista) {
-        if (nota.numeroViagem == null || nota.progressoViagem == null) continue;
-        var p = nota.progressoViagem!;
-        if (p > 1.0) p /= 100.0;
-        progresso[nota.numeroViagem!] = p.clamp(0.0, 1.0);
-      }
-      if (progresso.isNotEmpty) {
-        _session.saveBrlogProgress(progresso);
-      }
-      if (resposta.codEmpresaUsuario != null) {
-        _session.saveBrlogCodEmpresaUsuario(resposta.codEmpresaUsuario!);
-      }
-      if (lista.isNotEmpty) _session.saveBrlogNotas(lista);
-    } catch (e) {
-      LogHelper.e("BRLog login erro", e);
-    }
-  }
-
-  void _finalizarLogin() {
-    _oauthTimer?.cancel();
-    _oauthInjectTimer?.cancel();
-    if (_oauthSomente) {
-      Navigator.of(context).pop();
-      return;
-    }
     Navigator.of(context).pushReplacementNamed('/home');
   }
 
@@ -428,13 +264,6 @@ class _LoginWebViewScreenState extends State<LoginWebViewScreen> {
       '"${s.replaceAll('\\', '\\\\').replaceAll('"', '\\"')}"';
 
   @override
-  void dispose() {
-    _oauthTimer?.cancel();
-    _oauthInjectTimer?.cancel();
-    super.dispose();
-  }
-
-  @override
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: const Color(Constants.primaryRed),
@@ -461,10 +290,9 @@ class _LoginWebViewScreenState extends State<LoginWebViewScreen> {
   }
 }
 
-/// Tela de carregamento fiel ao LoginWebViewActivity do Kotlin: fundo vermelho,
-/// logo do caminhão centralizado com animação de pulso e texto "Autenticando...".
-/// Exibida após capturar o token, enquanto o fluxo OAuth BRLog roda oculto na
-/// WebView; ao concluir, navega para o home sem nunca mostrar a WebView.
+/// Tela de carregamento: fundo vermelho, logo do caminhão centralizado com
+/// animação de pulso e texto "Autenticando...". Exibida enquanto o token é
+/// validado no BFF; ao concluir, navega para o home.
 class _CarregamentoWidget extends StatelessWidget {
   const _CarregamentoWidget();
 
