@@ -76,10 +76,10 @@ jobs:
           BUILD_NUMBER: ${{ github.run_number }}
 
       - name: Renomear APK
-        run: cp build/app/outputs/flutter-apk/app-release.apk build/app/outputs/flutter-apk/recebimento_flutter.apk && ls -la build/app/outputs/flutter-apk/recebimento_flutter.apk
+        run: cp build/app/outputs/flutter-apk/app-release.apk build/app/outputs/flutter-apk/recebimento-release.apk && ls -la build/app/outputs/flutter-apk/recebimento-release.apk
 
       - name: Upload arm64-v8a APK
         uses: actions/upload-artifact@v4
         with:
-          name: recebimento_flutter-apk
-          path: ${{ github.workspace }}/flutter/build/app/outputs/flutter-apk/recebimento_flutter.apk
+          name: recebimento-release-apk
+          path: ${{ github.workspace }}/flutter/build/app/outputs/flutter-apk/recebimento-release.apk

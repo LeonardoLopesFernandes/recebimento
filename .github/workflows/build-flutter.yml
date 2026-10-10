@@ -58,7 +58,7 @@ jobs:
             --no-tree-shake-icons
 
       - name: Rename APK
-        run: mv build/app/outputs/flutter-apk/app-release.apk recebimento_flutter.apk
+        run: mv build/app/outputs/flutter-apk/app-release.apk recebimento-release.apk
 
       - name: Cleanup keystore
         if: always()
@@ -73,6 +73,6 @@ jobs:
             Build automático a partir do commit `${{ github.sha }}`.
             APK Flutter **arm64-v8a** (release).
             Instale sobre a versão anterior para atualizar (versionCode crescente).
-          files: flutter/recebimento_flutter.apk
+          files: flutter/recebimento-release.apk
           overwrite: true
           make_latest: true
