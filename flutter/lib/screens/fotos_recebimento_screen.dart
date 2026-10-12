@@ -74,15 +74,24 @@ class _FotosRecebimentoScreenState extends State<FotosRecebimentoScreen> {
   }
 
   /// Sobe ao OneDrive só as fotos recém-adicionadas (sem bloquear a UI).
+  /// Silencioso: se ainda não houver permissão, apenas mantém local e avisa.
   void _backupNovas(Set<String> antes) async {
     final novas = _fotos.where((p) => !antes.contains(p)).toList();
+    if (novas.isEmpty) return;
+    final token = await OneDriveBackup.token();
+    if (!mounted) return;
+    if (token == null) {
+      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
+          content: Text('Foto salva local. Toque em Backup OneDrive para enviar.')));
+      return;
+    }
     for (final n in novas) {
-      final err = await OneDriveBackup.enviarFoto(_viagem, File(n));
+      final err = await OneDriveBackup.enviarFotoComToken(_viagem, File(n), token);
       if (!mounted) return;
       if (err != null) {
         ScaffoldMessenger.of(context).showSnackBar(SnackBar(
             content: Text(err == 'auth'
-                ? 'Foto salva local. Para o OneDrive, refaça o login (menu BRLog).'
+                ? 'Foto salva local. Toque em Backup OneDrive para enviar.'
                 : 'Foto salva local. Falha no backup: $err')));
         return;
       }
@@ -98,26 +107,34 @@ class _FotosRecebimentoScreenState extends State<FotosRecebimentoScreen> {
           content: Text('Tudo já está no OneDrive')));
       return;
     }
+    ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
+        content: Text('Verificando permissão do OneDrive...')));
+    final token = await OneDriveBackup.token(interactive: true);
+    if (!mounted) return;
+    if (token == null) {
+      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
+          content: Text('Sem permissão no OneDrive. É preciso aprovar o acesso uma vez.')));
+      return;
+    }
     ScaffoldMessenger.of(context).showSnackBar(SnackBar(
         content: Text('Enviando ${pend.length} foto(s)...')));
     var ok = 0;
     String? lastErr;
     for (final p in pend) {
-      final err = await OneDriveBackup.enviarFoto(_viagem, File(p));
+      final err = await OneDriveBackup.enviarFotoComToken(_viagem, File(p), token);
       if (!mounted) return;
       if (err == null) {
         ok++;
       } else {
         lastErr = err;
+        if (err == 'auth') break;
       }
     }
     if (!mounted) return;
     ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-        content: Text(lastErr == 'auth'
-            ? 'Sem permissão no OneDrive: entre novamente pelo menu BRLog.'
-            : (ok == pend.length
-                ? 'Backup concluído: $ok foto(s)'
-                : 'Enviadas $ok/${pend.length} ($lastErr)'))));
+        content: Text(ok == pend.length
+            ? 'Backup concluído: $ok foto(s)'
+            : 'Enviadas $ok/${pend.length} ($lastErr)')));
   }
 
   void _verFoto(String path) {

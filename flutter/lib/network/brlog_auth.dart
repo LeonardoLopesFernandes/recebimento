@@ -55,4 +55,43 @@ class BrLogAuth {
       await _oauth().logout(showWebPopup: false);
     } catch (_) {}
   }
+
+  /// OAuth separado para o backup OneDrive, com escopo que inclui
+  /// Files.ReadWrite. Fica em storage proprio (tokenIdentifier) para NAO
+  /// afetar o login de sincronizacao do BRLog (escopo minimo).
+  static AadOAuth _oauthOneDrive() => AadOAuth(
+        Config(
+          tenant: Constants.tenant,
+          clientId: Constants.clientId,
+          clientSecret:
+              Constants.clientSecret.isEmpty ? null : Constants.clientSecret,
+          redirectUri: Constants.redirectUri,
+          scope: Constants.scopes,
+          responseType: 'code',
+          tokenIdentifier: 'OneDriveToken',
+          navigatorKey: appNavigatorKey,
+        ),
+      );
+
+  /// Token do OneDrive sem interacao (retorna null se ainda nao consentido).
+  static Future<String?> oneDriveTokenSilent() async {
+    try {
+      return await _oauthOneDrive().getAccessToken();
+    } catch (_) {
+      return null;
+    }
+  }
+
+  /// Token do OneDrive abrindo o consentimento/login se necessario.
+  static Future<String?> oneDriveTokenInteractive() async {
+    try {
+      final oauth = _oauthOneDrive();
+      final existente = await oauth.getAccessToken();
+      if (existente != null && existente.isNotEmpty) return existente;
+      await oauth.login();
+      return await oauth.getAccessToken();
+    } catch (_) {
+      return null;
+    }
+  }
 }

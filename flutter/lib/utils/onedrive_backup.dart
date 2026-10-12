@@ -2,34 +2,18 @@ import 'dart:convert';
 import 'dart:io';
 import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
-import '../network/microsoft_oauth.dart';
-import '../network/session_manager.dart';
+import '../network/brlog_auth.dart';
 
-/// Backup das fotos no OneDrive da conta logada (Microsoft Graph),
-/// 100% Dart (sem plugin nativo, seguro para patch OTA).
+/// Backup das fotos no OneDrive da conta Microsoft logada (Graph),
+/// 100% Dart (sem plugin nativo).
 /// Pasta: Recebimento/<viagem>/<arquivo>.
-/// Requer consentimento Files.ReadWrite: no primeiro uso após essa
-/// mudança, refaça o login (menu BRLog) uma vez.
+///
+/// O token do OneDrive usa um OAuth separado (escopo com Files.ReadWrite),
+/// obtido sob demanda, para nao afetar o login de sincronizacao do BRLog.
 class OneDriveBackup {
   static const _graph = 'https://graph.microsoft.com/v1.0';
   // Fragmento múltiplo de 320 KiB (exigência do upload resumível).
   static const _chunk = 3276800;
-
-  static Future<String?> _accessToken() async {
-    final session = await SessionManager.create();
-    final rt = session.getBrlogRefreshToken();
-    if (rt == null || rt.isEmpty) return null;
-    try {
-      final t = await MicrosoftOAuth.renovarToken(rt);
-      if (t == null || t.accessToken.isEmpty) return null;
-      if (t.refreshToken != null && t.refreshToken!.isNotEmpty) {
-        session.saveBrlogRefreshToken(t.refreshToken!);
-      }
-      return t.accessToken;
-    } catch (_) {
-      return null;
-    }
-  }
 
   static String _upKey(String viagem) => 'ONEDRIVE_UP_$viagem';
 
@@ -54,11 +38,16 @@ class OneDriveBackup {
         .toList();
   }
 
-  /// Envia uma foto. Retorna null em sucesso ou a mensagem de erro
-  /// ('auth' = sem permissão/sessão: refazer login BRLog).
-  static Future<String?> enviarFoto(String viagem, File file) async {
-    final token = await _accessToken();
-    if (token == null) return 'auth';
+  /// Token do OneDrive. [interactive] abre a tela de consentimento se
+  /// ainda não houver permissão; sem isso, tenta silenciosamente.
+  static Future<String?> token({bool interactive = false}) => interactive
+      ? BrLogAuth.oneDriveTokenInteractive()
+      : BrLogAuth.oneDriveTokenSilent();
+
+  /// Envia uma foto usando o [token] informado. Retorna null em sucesso ou
+  /// a mensagem de erro ('auth' = token/permissão inválidos).
+  static Future<String?> enviarFotoComToken(
+      String viagem, File file, String token) async {
     final nome = file.path.split('/').last;
     try {
       final bytes = await file.readAsBytes();
