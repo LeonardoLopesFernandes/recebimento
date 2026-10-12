@@ -48,12 +48,13 @@ jobs:
           KEY_PASSWORD: ${{ secrets.KEY_PASSWORD }}
           microsoftClientSecret: ${{ secrets.MICROSOFT_CLIENT_SECRET }}
           BUILD_NUMBER: ${{ github.run_number }}
+          VERSION_CODE: ${{ 2000 + github.run_number }}
         run: |
           flutter build apk \
             --release \
             --target-platform android-arm64 \
-            --build-number=$BUILD_NUMBER \
-            --build-name=1.0.0 \
+            --build-number=$VERSION_CODE \
+            --build-name="${GITHUB_REF_NAME#v}" \
             --dart-define=MICROSOFT_CLIENT_SECRET=$microsoftClientSecret \
             --no-tree-shake-icons
 
