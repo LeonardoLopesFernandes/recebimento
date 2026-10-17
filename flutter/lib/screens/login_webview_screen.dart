@@ -301,7 +301,7 @@ class _CarregamentoWidget extends StatelessWidget {
   Widget build(BuildContext context) {
     return Container(
       color: const Color(Constants.primaryRed),
-      child: const Center(
+      child: Center(
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
@@ -311,8 +311,8 @@ class _CarregamentoWidget extends StatelessWidget {
               height: 120,
               repeat: true,
             ),
-            SizedBox(height: 16),
-            Text(
+            const SizedBox(height: 16),
+            const Text(
               'Autenticando...',
               style: TextStyle(color: Colors.white, fontSize: 16),
             ),
