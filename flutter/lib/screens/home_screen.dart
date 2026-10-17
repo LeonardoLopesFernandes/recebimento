@@ -252,8 +252,19 @@ class _HomeBody extends StatelessWidget {
         builder: (_) => DialogProtocoloSucesso(protocolo: protocolo),
       );
     } catch (e) {
-      ScaffoldMessenger.of(context)
-          .showSnackBar(SnackBar(content: Text("❌ $e")));
+      if (!context.mounted) return;
+      showDialog(
+        context: context,
+        builder: (_) => AlertDialog(
+          title: const Text('Erro ao gerar protocolo'),
+          content: Text('$e'),
+          actions: [
+            TextButton(
+                onPressed: () => Navigator.pop(context),
+                child: const Text('OK')),
+          ],
+        ),
+      );
     }
   }
 }

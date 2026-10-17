@@ -491,12 +491,34 @@ class _DetalhesViagemScreenState extends State<DetalhesViagemScreen> {
               DialogProtocoloSucesso(protocolo: resp.protocolo ?? "Gerado"),
         );
       } else {
-        ScaffoldMessenger.of(context)
-            .showSnackBar(SnackBar(content: Text("❌ ${resp.message ?? 'Falha'}")));
+        if (!mounted) return;
+        showDialog(
+          context: context,
+          builder: (_) => AlertDialog(
+            title: const Text('Falha ao gerar protocolo'),
+            content: Text(resp.message ?? 'Falha'),
+            actions: [
+              TextButton(
+                  onPressed: () => Navigator.pop(context),
+                  child: const Text('OK')),
+            ],
+          ),
+        );
       }
     } catch (e) {
-      ScaffoldMessenger.of(context)
-          .showSnackBar(SnackBar(content: Text("❌ $e")));
+      if (!mounted) return;
+      showDialog(
+        context: context,
+        builder: (_) => AlertDialog(
+          title: const Text('Erro ao gerar protocolo'),
+          content: Text('$e'),
+          actions: [
+            TextButton(
+                onPressed: () => Navigator.pop(context),
+                child: const Text('OK')),
+          ],
+        ),
+      );
     }
   }
 
