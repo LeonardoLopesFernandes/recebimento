@@ -97,8 +97,8 @@ class _SplashDeciderState extends State<SplashDecider> {
       body: Center(
         child: Lottie.asset(
           'assets/lottie/recebimento_loading.json',
-          width: 300,
-          height: 270,
+          width: 260,
+          height: 234,
           repeat: true,
         ),
       ),

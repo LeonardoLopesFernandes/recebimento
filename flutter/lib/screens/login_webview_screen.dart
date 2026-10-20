@@ -307,8 +307,8 @@ class _CarregamentoWidget extends StatelessWidget {
           children: [
             Lottie.asset(
               'assets/lottie/recebimento_loading.json',
-              width: 260,
-              height: 234,
+              width: 220,
+              height: 198,
               repeat: true,
             ),
             const SizedBox(height: 16),

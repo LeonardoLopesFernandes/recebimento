@@ -211,8 +211,8 @@ class _LoginScreenState extends State<LoginScreen> {
                     const SizedBox(height: 32),
                     Lottie.asset(
                       'assets/lottie/recebimento_loading.json',
-                      width: 260,
-                      height: 234,
+                      width: 220,
+                      height: 198,
                       repeat: true,
                     ),
                     const SizedBox(height: 6),
