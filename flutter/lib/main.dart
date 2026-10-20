@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
+import 'package:lottie/lottie.dart';
 import 'app_navigator.dart';
-import 'widgets/truck_loader.dart';
 import 'utils/constants.dart';
 import 'network/session_manager.dart';
 import 'screens/login_screen.dart';
@@ -92,10 +92,15 @@ class _SplashDeciderState extends State<SplashDecider> {
 
   @override
   Widget build(BuildContext context) {
-    return const Scaffold(
-      backgroundColor: Color(Constants.primaryRed),
+    return Scaffold(
+      backgroundColor: const Color(Constants.primaryRed),
       body: Center(
-        child: TruckLoader(),
+        child: Lottie.asset(
+          'assets/lottie/recebimento_loading.json',
+          width: 300,
+          height: 270,
+          repeat: true,
+        ),
       ),
     );
   }

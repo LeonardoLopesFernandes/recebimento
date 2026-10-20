@@ -306,9 +306,9 @@ class _CarregamentoWidget extends StatelessWidget {
           mainAxisSize: MainAxisSize.min,
           children: [
             Lottie.asset(
-              'assets/lottie/shop_active.json',
-              width: 120,
-              height: 120,
+              'assets/lottie/recebimento_loading.json',
+              width: 260,
+              height: 234,
               repeat: true,
             ),
             const SizedBox(height: 16),
