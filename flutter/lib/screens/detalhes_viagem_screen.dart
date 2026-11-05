@@ -552,8 +552,8 @@ class _DetalhesViagemScreenState extends State<DetalhesViagemScreen> {
       builder: (ctx) => AlertDialog(
         title: const Text("Autorizar a abertura do baú?"),
         content: Text(
-          "Viagem: ${d?.viagemId ?? '-'}\n"
-          "Data: ${d?.viagemData ?? '-'}\n"
+          "Viagem: ${_pegarNumeroViagem()}\n"
+          "Data: ${_formatarDataViagem(d?.viagemData ?? '')}\n"
           "Placa: ${d?.placaVeiculo ?? '-'}\n"
           "Origem: ${d?.origem ?? '-'}\n"
           "Pedido: ${nota.codPedido ?? '-'}",
@@ -578,7 +578,7 @@ class _DetalhesViagemScreenState extends State<DetalhesViagemScreen> {
           content: Text("Dados do pedido indisponíveis para liberação.")));
       return;
     }
-    final dataCadastro = DateFormat("yyyy-MM-dd'T'HH:mm:ss").format(DateTime.now());
+    final dataCadastro = DateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS").format(DateTime.now());
     try {
       final resp = await _brLog.autorizarAberturaBau(AutorizarAberturaBauRequest(
         codPedido: nota.codPedido!,
